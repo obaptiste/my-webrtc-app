@@ -1,0 +1,39 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  name     String   @unique
+  callsReceived Call[]   @relation("CalleeToUser")
+  callsMade    Call[]    @relation("CallerToUser")
+  // Add fields like call history, settings in later parts
+}
+
+model Call {
+   id             Int      @id @default(autoincrement())
+   caller         User     @relation("CallerToUser", fields: [callerId], references: [id])
+   callerId       Int
+   callee         User     @relation("CalleeToUser", fields: [calleeId], references: [id])
+   calleeId       Int
+   status         String   @default("PENDING") // Optionally add an index here
+   createdAt      DateTime @default(now())
+}
+
+
+model Session {
+   id         String   @id @default(cuid()) @unique // Using 'cuid' for IDs 
+   state      String   @default("pending")
+   // ... potentially add fields for participants later
+}

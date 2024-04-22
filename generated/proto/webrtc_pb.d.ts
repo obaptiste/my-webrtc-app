@@ -1,5 +1,5 @@
 // package: webrtc
-// file: proto/webrtc.proto
+// file: webrtc.proto
 
 import * as jspb from "google-protobuf";
 

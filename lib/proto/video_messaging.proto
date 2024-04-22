@@ -44,3 +44,25 @@ message ListVideoMessagesRequest {
 message ListVideoMessagesResponse {
   repeated VideoMessageMetadata messages = 1;
 }
+
+message DeleteVideoMessageRequest {
+  string message_id = 1;
+}
+
+message DeleteVideoMessageResponse {
+  bool success = 1;
+}
+
+
+message SearchVideoMessagesRequest {
+  string query = 1;
+  string recipient_id = 2;
+  int32 page_size = 3;
+  string page_token = 4;
+  int64 start_time = 5;
+  int64 end_time = 6;
+}
+
+message SearchVideoMessagesResponse {
+  repeated VideoMessageMetadata messages = 1;
+}

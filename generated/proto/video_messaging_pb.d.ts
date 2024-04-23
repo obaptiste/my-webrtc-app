@@ -34,8 +34,26 @@ export namespace VideoMessageChunk {
 }
 
 export class VideoMessageMetadata extends jspb.Message {
-  getMessageId(): string;
-  setMessageId(value: string): void;
+  getId(): string;
+  setId(value: string): void;
+
+  getTitle(): string;
+  setTitle(value: string): void;
+
+  getDescription(): string;
+  setDescription(value: string): void;
+
+  getCreatedAt(): string;
+  setCreatedAt(value: string): void;
+
+  getCreatedBy(): string;
+  setCreatedBy(value: string): void;
+
+  getSize(): number;
+  setSize(value: number): void;
+
+  getDuration(): number;
+  setDuration(value: number): void;
 
   getSenderId(): string;
   setSenderId(value: string): void;
@@ -69,7 +87,13 @@ export class VideoMessageMetadata extends jspb.Message {
 
 export namespace VideoMessageMetadata {
   export type AsObject = {
-    messageId: string,
+    id: string,
+    title: string,
+    description: string,
+    createdAt: string,
+    createdBy: string,
+    size: number,
+    duration: number,
     senderId: string,
     recipientId: string,
     timestamp: number,
@@ -118,6 +142,15 @@ export class ListVideoMessagesRequest extends jspb.Message {
   getEndTime(): number;
   setEndTime(value: number): void;
 
+  getPage(): number;
+  setPage(value: number): void;
+
+  getSortBy(): string;
+  setSortBy(value: string): void;
+
+  getSortOrder(): string;
+  setSortOrder(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListVideoMessagesRequest.AsObject;
   static toObject(includeInstance: boolean, msg: ListVideoMessagesRequest): ListVideoMessagesRequest.AsObject;
@@ -136,6 +169,9 @@ export namespace ListVideoMessagesRequest {
     conversationId: string,
     startTime: number,
     endTime: number,
+    page: number,
+    sortBy: string,
+    sortOrder: string,
   }
 }
 
@@ -144,6 +180,9 @@ export class ListVideoMessagesResponse extends jspb.Message {
   getMessagesList(): Array<VideoMessageMetadata>;
   setMessagesList(value: Array<VideoMessageMetadata>): void;
   addMessages(value?: VideoMessageMetadata, index?: number): VideoMessageMetadata;
+
+  getTotalCount(): number;
+  setTotalCount(value: number): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListVideoMessagesResponse.AsObject;
@@ -158,6 +197,7 @@ export class ListVideoMessagesResponse extends jspb.Message {
 export namespace ListVideoMessagesResponse {
   export type AsObject = {
     messagesList: Array<VideoMessageMetadata.AsObject>,
+    totalCount: number,
   }
 }
 
@@ -247,6 +287,9 @@ export class SearchVideoMessagesResponse extends jspb.Message {
   setMessagesList(value: Array<VideoMessageMetadata>): void;
   addMessages(value?: VideoMessageMetadata, index?: number): VideoMessageMetadata;
 
+  getTotalCount(): number;
+  setTotalCount(value: number): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SearchVideoMessagesResponse.AsObject;
   static toObject(includeInstance: boolean, msg: SearchVideoMessagesResponse): SearchVideoMessagesResponse.AsObject;
@@ -260,6 +303,7 @@ export class SearchVideoMessagesResponse extends jspb.Message {
 export namespace SearchVideoMessagesResponse {
   export type AsObject = {
     messagesList: Array<VideoMessageMetadata.AsObject>,
+    totalCount: number,
   }
 }
 

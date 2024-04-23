@@ -18,6 +18,8 @@ model User {
   name     String   @unique
   callsReceived Call[]   @relation("CalleeToUser")
   callsMade    Call[]    @relation("CallerToUser")
+  videoMessages VideoMessage[] @relation("SenderToVideoMessage") 
+  videoMessagesReceived VideoMessage[] @relation("RecipientToVideoMessage")
   // Add fields like call history, settings in later parts
 }
 
@@ -36,4 +38,27 @@ model Session {
    id         String   @id @default(cuid()) @unique // Using 'cuid' for IDs 
    state      String   @default("pending")
    // ... potentially add fields for participants later
+}
+
+model VideoMessage {
+  id        String   @id @default(cuid())
+  sender    User     @relation(name: "SenderToVideoMessage", fields: [senderId], references: [id])
+  senderId  Int
+  recipient User     @relation(name: "RecipientToVideoMessage", fields: [recipientId], references: [id])
+  recipientId Int
+  title     String
+  description String
+  createdAt DateTime @default(now())
+  createdBy String
+  size      Int
+  duration  Int
+  videoChunks VideoChunk[]
+}
+
+model VideoChunk {
+  id          String   @id @default(cuid())
+  index       Int
+  data        Bytes
+  videoMessage VideoMessage @relation(fields: [videoMessageId], references: [id])
+  videoMessageId String
 }

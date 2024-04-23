@@ -17,14 +17,19 @@ message VideoMessageChunk {
 }
 
 message VideoMessageMetadata {
-  string message_id = 1; 
-  string sender_id = 2;
-  string recipient_id = 3; 
-  int64 timestamp = 4;
-  int32 target_duration_seconds = 5; // Target duration the user intended
-  int32 actual_duration_seconds = 6; // Actual recorded duration
-  bytes thumbnail = 7;  
-
+  string id = 1; // Updated field name
+  string title = 2; // New field
+  string description = 3; // New field
+  string created_at = 4; // New field
+  string created_by = 5; // New field
+  int64 size = 6; // New field
+  int32 duration = 7; // New field
+  string sender_id = 8; // Renamed field
+  string recipient_id = 9; // Renamed field
+  int64 timestamp = 10; // Renamed field
+  int32 target_duration_seconds = 11; // Renamed field
+  int32 actual_duration_seconds = 12; // Renamed field
+  bytes thumbnail = 13; // Renamed field
 }
 
 message GetVideoMessageRequest {
@@ -39,10 +44,14 @@ message ListVideoMessagesRequest {
   string conversation_id = 4;
   int64 start_time = 5;
   int64 end_time = 6;
+  int32 page = 7;
+  string sort_by = 8;
+  string sort_order = 9;
 }
 
 message ListVideoMessagesResponse {
   repeated VideoMessageMetadata messages = 1;
+  int32 total_count = 2;
 }
 
 message DeleteVideoMessageRequest {
@@ -65,4 +74,5 @@ message SearchVideoMessagesRequest {
 
 message SearchVideoMessagesResponse {
   repeated VideoMessageMetadata messages = 1;
+  int32 total_count = 2;
 }

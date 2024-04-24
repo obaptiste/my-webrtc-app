@@ -49,4 +49,4 @@ async function getVideoMessage(
     }
 }
 
-export { getVideoMessage };
+export default getVideoMessage;

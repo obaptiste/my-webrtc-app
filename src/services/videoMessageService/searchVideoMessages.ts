@@ -1,16 +1,22 @@
 import { ServerUnaryCall, sendUnaryData, status } from '@grpc/grpc-js';
 import { SearchVideoMessagesRequest, SearchVideoMessagesResponse, VideoMessageMetadata } from '../../../generated/proto/video_messaging_pb';
-import prisma, { VideoMessage } from '@prisma/client';
+import prisma from '../../../lib/prisma';
 
-const prisma = new Prisma();
+/**
+ * Search video messages.
+ *
+ * @param call The gRPC call object.
+ * @param callback The callback function.
+ */
 
 async function searchVideoMessages(call: ServerUnaryCall<SearchVideoMessagesRequest, SearchVideoMessagesResponse>, callback: sendUnaryData<SearchVideoMessagesResponse>) {
     const request = call.request;
     const query = request.getQuery();
-    const page = request.getPage();
+    const recipientId = request.getRecipientId();
     const pageSize = request.getPageSize();
-    const sortBy = request.getSortBy();
-    const sortOrder = request.getSortOrder();
+    const pageToken = request.getPageToken();
+    const startTime = request.getStartTime();
+    const endTime = request.getEndTime();
 
     try {
         const videoMessages = await prisma.videoMessage.findMany({
@@ -19,11 +25,12 @@ async function searchVideoMessages(call: ServerUnaryCall<SearchVideoMessagesRequ
                     { title: { contains: query } },
                     { description: { contains: query } },
                 ],
+                recipientId: parseInt(recipientId),
             },
-            skip: (page - 1) * pageSize,
             take: pageSize,
+            skip: pageToken ? 1 : 0,
             orderBy: {
-                [sortBy]: sortOrder,
+                createdAt: 'desc',
             },
             include: {
                 videoChunks: true,
@@ -46,7 +53,7 @@ async function searchVideoMessages(call: ServerUnaryCall<SearchVideoMessagesRequ
             videoMessageMetadata.push(metadata);
         }
 
-        response.setItemsList(videoMessageMetadata);
+        response.setMessagesList(videoMessageMetadata);
         response.setTotalCount(videoMessageMetadata.length);
 
         callback(null, response);

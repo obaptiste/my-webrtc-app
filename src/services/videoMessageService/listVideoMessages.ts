@@ -1,6 +1,5 @@
 import { ServerUnaryCall, sendUnaryData, status } from '@grpc/grpc-js';
 import { ListVideoMessagesRequest, ListVideoMessagesResponse, VideoMessageMetadata } from '../../../generated/proto/video_messaging_pb';
-import setItemsList from 'google-protobuf'; // Add this line
 
 import prisma from '../../../lib/prisma';
 
@@ -39,9 +38,9 @@ async function listVideoMessages(call: ServerUnaryCall<ListVideoMessagesRequest,
             videoMessageMetadata.push(metadata);
         }
 
-        response.setItemsList(videoMessageMetadata);
-        response.setTotalCount(await prisma.videoMessage.count());
 
+        response.setMessagesList(videoMessageMetadata);
+        response.setTotalCount(await prisma.videoMessage.count());
         callback(null, response);
     } catch (error) {
         callback({
@@ -50,3 +49,5 @@ async function listVideoMessages(call: ServerUnaryCall<ListVideoMessagesRequest,
         }, null);
     }
 }
+
+export default listVideoMessages;

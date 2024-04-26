@@ -9,6 +9,7 @@ import type { StatusObject as StatusObjectGrpcJs } from '@grpc/grpc-js';
 import { VideoMessage } from '@prisma/client';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+import { VideoMessageServiceHandlers } from './updateVideoMessage';
 import storeVideoPermanently from '../../../lib/storeVideoPermanently';
 
 const PROTO_PATH = '../../lib/proto/video_messaging.proto';
@@ -16,21 +17,18 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH);
 const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
 // Add the import statement above
 
-export interface VideoMessageServiceHandlers {
-    uploadVideoMessage(call: ServerDuplexStream<VideoMessageChunk, VideoMessageMetadata>, callback: grpc.sendUnaryData<VideoMessageMetadata>): void;
-    getVideoMessage(call: grpc.ServerUnaryCall<GetVideoMessageRequest, VideoMessageChunk>, callback: grpc.sendUnaryData<VideoMessageChunk>): void;
-    listVideoMessages(call: grpc.ServerUnaryCall<ListVideoMessagesRequest, ListVideoMessagesResponse>, callback: grpc.sendUnaryData<ListVideoMessagesResponse>): void;
-    deleteVideoMessage(call: grpc.ServerUnaryCall<DeleteVideoMessageRequest, DeleteVideoMessageResponse>, callback: grpc.sendUnaryData<DeleteVideoMessageResponse>): void;
-    searchVideoMessages(call: grpc.ServerUnaryCall<SearchVideoMessagesRequest, SearchVideoMessagesResponse>, callback: grpc.sendUnaryData<SearchVideoMessagesResponse>): void;
-}
-export interface VideoMessageServiceDefinition {
-    VideoMessagingService: {
-        service: {
-            uploadVideoMessage: grpc.handleServerStreamingCall<VideoMessageChunk, VideoMessageMetadata>,
-            getVideoMessage: grpc.handleClientStreamingCall<GetVideoMessageRequest, VideoMessageChunk>
-        }
+export function getMetadata(): any {
+    export function getMetadata(): any {
+        // Implement the logic to retrieve and return the metadata
+        // For example, you can return a hardcoded metadata object
+        return {
+            key1: 'value1',
+            key2: 'value2',
+            // Add more key-value pairs as needed
+        };
     }
 }
+
 
 /**
  * Uploads a video message to the database.
@@ -70,23 +68,25 @@ const uploadVideoMessage: VideoMessageServiceHandlers['uploadVideoMessage'] = as
                     id: messageId,
                 },
                 update: {
-                    videoUrl: generateVideoUrl(messageId),
+                    videoUrl: vidUrl,
+                    metadata: videoChunks.map((chunk) => chunk.getMetadata()).join('\n'),
                 },
+            },
                 select: {
-                    id: true,
-                    messageId: true,
-                    videoUrl: true,
-                },
+                id: true,
+                messageId: true,
+                videoUrl: true,
+            },
             });,
+    },
+    update: {
+        videoUrl: generateVideoUrl(messageId),
         },
-            update: {
+    create: {
+        messageId,
             videoUrl: generateVideoUrl(messageId),
         },
-            create: {
-            messageId,
-            videoUrl: generateVideoUrl(messageId),
-        },
-            });
+});
     // Add the type annotation above
 
 } catch (error) {            // ...

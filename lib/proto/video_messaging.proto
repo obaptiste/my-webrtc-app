@@ -8,6 +8,8 @@ service VideoMessagingService {
   rpc ListVideoMessages (ListVideoMessagesRequest) returns (ListVideoMessagesResponse) {}
   rpc DeleteVideoMessage (DeleteVideoMessageRequest) returns (DeleteVideoMessageResponse) {}
   rpc SearchVideoMessages (SearchVideoMessagesRequest) returns (SearchVideoMessagesResponse) {}
+  rpc GetVideoMessageMetadata (GetVideoMessageMetadataRequest) returns (VideoMessageMetadata) {}
+  
 }
 
 message VideoMessageChunk {
@@ -35,6 +37,12 @@ message VideoMessageMetadata {
 message GetVideoMessageRequest {
   string message_id = 1;
 }
+
+message GetVideoMessageMetadataRequest {
+  string message_id = 1;
+}
+
+
 
 message ListVideoMessagesRequest {
   // Add filtering options here (e.g., recipient_id, conversation_id, date ranges)

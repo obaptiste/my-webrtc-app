@@ -123,6 +123,26 @@ export namespace GetVideoMessageRequest {
   }
 }
 
+export class GetVideoMessageMetadataRequest extends jspb.Message {
+  getMessageId(): string;
+  setMessageId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetVideoMessageMetadataRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetVideoMessageMetadataRequest): GetVideoMessageMetadataRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetVideoMessageMetadataRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetVideoMessageMetadataRequest;
+  static deserializeBinaryFromReader(message: GetVideoMessageMetadataRequest, reader: jspb.BinaryReader): GetVideoMessageMetadataRequest;
+}
+
+export namespace GetVideoMessageMetadataRequest {
+  export type AsObject = {
+    messageId: string,
+  }
+}
+
 export class ListVideoMessagesRequest extends jspb.Message {
   getRecipientId(): string;
   setRecipientId(value: string): void;

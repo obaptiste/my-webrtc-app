@@ -52,6 +52,7 @@ model VideoMessage {
   createdBy String
   size      Int
   duration  Int
+  videoUrl  String
   videoChunks VideoChunk[]
 }
 

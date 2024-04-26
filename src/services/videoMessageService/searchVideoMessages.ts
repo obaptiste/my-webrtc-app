@@ -1,5 +1,5 @@
 import { ServerUnaryCall, sendUnaryData, status } from '@grpc/grpc-js';
-import { SearchVideoMessagesRequest, SearchVideoMessagesResponse, VideoMessageMetadata } from '../../../generated/proto/video_messaging_pb';
+import { SearchVideoMessagesRequest, SearchVideoMessagesResponse, VideoMessageMetadata } from '../../../generated/proto/video_messaging_pb.d.2ts';
 import prisma from '../../../lib/prisma';
 
 /**

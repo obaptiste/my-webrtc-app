@@ -1,13 +1,15 @@
 import React, { useState, useRef, useCallback } from "react";
-import { uploadVideoMessage } from "@prisma/client"; // Import the missing function
-import client from "@prisma/client"; // Replace "../../path/to/client" with the actual path to the client module
+import prisma from "../../lib/prisma";
+import { VideoMessage } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import {
   VideoMessageChunk,
   VideoMessageMetadata,
-  GetVideoMessageRequest,
-  ListVideoMessagesRequest,
-  SearchVideoMessagesRequest,
-} from "../../generated/proto/video_messaging_pb";
+} from "../../generated/proto/video_messaging_pb.d.2ts";
+import { ClientDuplexStream } from "@grpc/grpc-js";
+import { createDuplexStream } from "grpc-web-helpers";
+import { uploadVideoMessage } from "@/src/services/videoMessageService";
+import { ServerDuplexStream } from "@grpc/grpc-js";
 
 const MAX_CHUNK_SIZE = 1024 * 1024; // 1MB
 
@@ -56,10 +58,20 @@ const VideoUpload = () => {
   const uploadChunks = useCallback(async () => {
     setUploadStatus("uploading");
 
-    // ...
+    //Collect metadata
+    // const metadata: VideoMessageMetadata = new VideoMessageMetadata();
 
-    const stream = uploadVideoMessage(/* ... */); // Call the function with the appropriate arguments
+    const duplexStreamInstance: ServerDuplexStream<
+      VideoMessageChunk,
+      VideoMessageChunk
+    > = createDuplexStream();
 
+    uploadVideoMessage(
+      duplexStreamInstance as ServerDuplexStream<
+        VideoMessageChunk,
+        VideoMessageChunk
+      >
+    );
     try {
       for (let i = 0; i < recordedChunks.length; i++) {
         const chunk = recordedChunks[i];
@@ -67,9 +79,10 @@ const VideoUpload = () => {
         messageChunk.setMessageId("some-message-id"); // Assign a new message ID
         messageChunk.setChunkIndex(i);
         messageChunk.setData(new Uint8Array(await chunk.arrayBuffer()));
-        stream.write(messageChunk);
+        duplexStreamInstance.write(messageChunk);
       }
-      stream.end();
+      duplexStreamInstance.end();
+      recordedChunks = []; // Clear the recorded chunks
       setUploadStatus("success");
     } catch (error) {
       setUploadStatus("error");

@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package video_messaging;
+package video_messaging_service;
 
-service VideoMessaging {
+service VideoMessagingService {
   rpc UploadVideoMessage (stream VideoMessageChunk) returns (VideoMessageMetadata) {}
   rpc GetVideoMessage (GetVideoMessageRequest) returns (stream VideoMessageChunk) {}
   rpc ListVideoMessages (ListVideoMessagesRequest) returns (ListVideoMessagesResponse) {}

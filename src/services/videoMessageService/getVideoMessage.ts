@@ -2,7 +2,7 @@ import * as grpc from '@grpc/grpc-js';
 import { ServerDuplexStream } from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import { PrismaClient, VideoMessage, VideoChunk } from '@prisma/client';
-import { VideoMessageMetadata, DeleteVideoMessageRequest, GetVideoMessageRequest, VideoMessageChunk, ListVideoMessagesRequest, ListVideoMessagesResponse, SearchVideoMessagesRequest, SearchVideoMessagesResponse } from '../../../generated/proto/video_messaging_pb';
+import { VideoMessageMetadata, DeleteVideoMessageRequest, GetVideoMessageRequest, VideoMessageChunk, ListVideoMessagesRequest, ListVideoMessagesResponse, SearchVideoMessagesRequest, SearchVideoMessagesResponse } from '../../../generated/proto/video_messaging_pb.d.2ts';
 //import { VideoMessageChunk } from '../../generated/proto/video_messaging_pb';
 import { ServerUnaryCall, sendUnaryData, status } from '@grpc/grpc-js';
 

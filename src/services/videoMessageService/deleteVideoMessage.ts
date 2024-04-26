@@ -1,5 +1,5 @@
 import { ServerUnaryCall, sendUnaryData, status } from '@grpc/grpc-js';
-import { DeleteVideoMessageRequest, DeleteVideoMessageResponse } from '../../../generated/proto/video_messaging_pb';
+import { DeleteVideoMessageRequest, DeleteVideoMessageResponse } from '../../../generated/proto/video_messaging_pb.d.2ts';
 import prisma from '../../../lib/prisma';
 
 async function deleteVideoMessage(call: ServerUnaryCall<DeleteVideoMessageRequest, DeleteVideoMessageResponse>, callback: sendUnaryData<DeleteVideoMessageResponse>) {

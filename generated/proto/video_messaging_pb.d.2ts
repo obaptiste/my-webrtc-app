@@ -1,4 +1,4 @@
-// package: video_messaging_service
+// package: video_messaging
 // file: video_messaging.proto
 
 import * as jspb from "google-protobuf";

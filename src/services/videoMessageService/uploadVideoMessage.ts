@@ -11,23 +11,14 @@ import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { VideoMessageServiceHandlers } from './updateVideoMessage';
 import storeVideoPermanently from '../../../lib/storeVideoPermanently';
+import getVideoMessageMetaData from './getVideoMessageMetaData';
 
 const PROTO_PATH = '../../lib/proto/video_messaging.proto';
 const packageDefinition = protoLoader.loadSync(PROTO_PATH);
 const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
 // Add the import statement above
 
-export function getMetadata(): any {
-    export function getMetadata(): any {
-        // Implement the logic to retrieve and return the metadata
-        // For example, you can return a hardcoded metadata object
-        return {
-            key1: 'value1',
-            key2: 'value2',
-            // Add more key-value pairs as needed
-        };
-    }
-}
+
 
 
 /**
@@ -42,7 +33,7 @@ export function getMetadata(): any {
 
 
 
-const uploadVideoMessage: VideoMessageServiceHandlers['uploadVideoMessage'] = async (call: ServerDuplexStream<VideoMessageChunk, VideoMessageMetadata>) => {
+const uploadVideoMessage: VideoMessageServiceHandlers['UploadVideoMessage'] = async (call: ServerDuplexStream<VideoMessageChunk, VideoMessageMetadata>) => {
     const videoChunks: VideoMessageChunk[] = [];
 
     let messageId = '';
@@ -56,7 +47,7 @@ const uploadVideoMessage: VideoMessageServiceHandlers['uploadVideoMessage'] = as
         });
 
         call.on('end', async () => {
-            const tempFilePath = ``,
+            const tempFilePath = ``;
             const messageId = videoChunks[0].getMessageId();
             const vidUrl = await storeVideoPermanently(tempFilePath, messageId);
             // const generateVideoUrl = (messageId: string): string => {
@@ -69,36 +60,40 @@ const uploadVideoMessage: VideoMessageServiceHandlers['uploadVideoMessage'] = as
                 },
                 update: {
                     videoUrl: vidUrl,
-                    metadata: videoChunks.map((chunk) => chunk.getMetadata()).join('\n'),
+                    //metadata:getVideoMessageMetadata(messageId),
                 },
-            },
-                select: {
-                id: true,
-                messageId: true,
-                videoUrl: true,
-            },
-            });,
-    },
-    update: {
-        videoUrl: generateVideoUrl(messageId),
-        },
-    create: {
-        messageId,
-            videoUrl: generateVideoUrl(messageId),
-        },
-});
-    // Add the type annotation above
+                create: {
+                    id: messageId,
+                    videoUrl: vidUrl,
+                    title: '',
+                    description: '',
+                    createdBy: '',
+                    size: 0,
+                    duration: 0,
+                    senderId: 0, // Add sender property
+                    recipientId: 0, // Add recipient property
+                },
+            });
 
-} catch (error) {            // ...
+            const response = new VideoMessageMetadata();
+            response.setId(videoMessage.id);
+            response.setTitle(videoMessage.title);
+            response.setDescription(videoMessage.description);
+            response.setCreatedBy(videoMessage.createdBy);
+            call.write(response);
+            call.end();
+        })
 
-    call.emit('error', StatusObject.callErrorFromStatus({
-        code: grpc.status.INTERNAL,
-        details: 'Error uploading video message',
-        metadata: new grpc.Metadata(),
-    }, 'Error uploading video message'));
-}
-    };
+    } catch (error) {
+        console.error('Error uploading video message:', error);
+        call.emit('error'), StatusObject.callErrorFromStatus({
+            code: grpc.status.INTERNAL,
+            details: 'Error uploading video message',
+            metadata: new grpc.Metadata(),
+        }, 'Error uploading video message');
+    }
 
 
+};
 
 export default uploadVideoMessage;

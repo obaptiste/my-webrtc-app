@@ -3,6 +3,12 @@ import * as protoLoader from "@grpc/proto-loader";
 import { VideoMessageServiceDefinition, VideoMessageServiceHandlers } from "../";
 import prisma from "@/lib/prisma";
 import { UploadVideoMessage, GetVideoMessage, DeleteVideoMessage, ListVideoMessages, SearchVideoMessages } from "../../videoMessageService";
+import { VideoMessageChunk, VideoMessageMetadata, GetVideoMessageRequest, ListVideoMessagesRequest, ListVideoMessagesResponse, DeleteVideoMessageRequest, DeleteVideoMessageResponse, SearchVideoMessagesRequest, SearchVideoMessagesResponse } from "@/generated/proto/video_messaging_pb";
+import deleteVideoMessage from "../deleteVideoMessage";
+import getVideoMessage from "../getVideoMessage";
+import listVideoMessages from "../listVideoMessages";
+import searchVideoMessages from "../searchVideoMessages";
+import uploadVideoMessage from "../uploadVideoMessage";
 
 
 const PROTO_PATH = "../../lib/proto/video_messaging.proto";
@@ -10,24 +16,39 @@ const PROTO_PATH = "../../lib/proto/video_messaging.proto";
 
 
 // import { , ListVideoMessages, DeleteVideoMessage, SearchVideoMessages } from "../../videoMessageService"; // Add these import statements
-const packageDefinition = protoLoader.loadSync(PROTO_PATH); // Load the .proto file
+const packageDefinition = protoLoader.loadSync(PROTO_PATH,
+    {
+        keepCase: true,
+        longs: String,
+        enums: String,
+        defaults: true,
+        oneofs: true,
+    }
+); // Load the .proto file
 const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as unknown as VideoMessageServiceDefinition;
 
 const server = new grpc.Server();
 
 const myServiceHandlers: VideoMessageServiceHandlers = {
-    UploadVideoMessage: UploadVideoMessage,
-    GetVideoMessage: GetVideoMessage,
-    ListVideoMessages: ListVideoMessages,
-    DeleteVideoMessage: DeleteVideoMessage,
-    SearchVideoMessages: SearchVideoMessages,
+    UploadVideoMessage: (call: grpc.ServerDuplexStream<VideoMessageChunk, VideoMessageMetadata>) => {
+        uploadVideoMessage(call);
+    },
+    GetVideoMessage: (call: grpc.ServerWritableStream<GetVideoMessageRequest, VideoMessageChunk>) => {
+        getVideoMessage(call);
+    },
+    ListVideoMessages: (call: grpc.ServerUnaryCall<ListVideoMessagesRequest, ListVideoMessagesResponse>, callback: grpc.sendUnaryData<ListVideoMessagesResponse>) => {
+        listVideoMessages(call, callback);
+    },
+    DeleteVideoMessage: (call: grpc.ServerUnaryCall<DeleteVideoMessageRequest, DeleteVideoMessageResponse>, callback: grpc.sendUnaryData<DeleteVideoMessageResponse>) => {
+        deleteVideoMessage(call, callback);
+    },
+    SearchVideoMessages: (call: grpc.ServerUnaryCall<SearchVideoMessagesRequest, SearchVideoMessagesResponse>, callback: grpc.sendUnaryData<SearchVideoMessagesResponse>) => {
+        searchVideoMessages(call, callback);
+    },
 };
+server.addService(protoDescriptor.VideoMessagingService as unknown as grpc.ServiceDefinition<grpc.UntypedServiceImplementation>, myServiceHandlers as unknown as grpc.UntypedServiceImplementation);
 
-server.addService(protoDescriptor.VideoMessagingService.service, myServiceHandlers);
 
-server.bindAsync("
-    ,
-};
 
 
 ; // Add a closing parenthesis here

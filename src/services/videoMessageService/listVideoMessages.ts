@@ -1,31 +1,30 @@
 import { ServerUnaryCall, sendUnaryData, status } from '@grpc/grpc-js';
 import { ListVideoMessagesRequest, ListVideoMessagesResponse, VideoMessageMetadata } from '../../../generated/proto/video_messaging_pb.d';
-
 import prisma from '../../../lib/prisma';
 
-async function listVideoMessages(call: ServerUnaryCall<ListVideoMessagesRequest, ListVideoMessagesResponse>, callback: sendUnaryData<ListVideoMessagesResponse>) {
+async function listVideoMessages(
+    call: ServerUnaryCall<ListVideoMessagesRequest, ListVideoMessagesResponse>,
+    callback: sendUnaryData<ListVideoMessagesResponse>
+) {
     const request = call.request;
-    const page = (request.getPage as () => number)();
+    const page = request.getPage();
     const pageSize = request.getPageSize();
-    const sortBy = (request.getSortBy as () => string)();
+    const sortBy = request.getSortBy();
     const sortOrder = request.getSortOrder();
 
     try {
-        const videoMessages = await prisma.videoMessage.findMany({
-            skip: (page - 1) * pageSize,
-            take: pageSize,
-            orderBy: {
-                [sortBy]: sortOrder,
-            },
-            include: {
-                videoChunks: true,
-            },
-        });
+        const [videoMessages, totalCount] = await prisma.$transaction([
+            prisma.videoMessage.findMany({
+                skip: (page - 1) * pageSize,
+                take: pageSize,
+                orderBy: { [sortBy]: sortOrder },
+                include: { videoChunks: true },
+            }),
+            prisma.videoMessage.count(),
+        ]);
 
         const response = new ListVideoMessagesResponse();
-        const videoMessageMetadata: VideoMessageMetadata[] = [];
-
-        for (const videoMessage of videoMessages) {
+        const videoMessageMetadata: VideoMessageMetadata[] = videoMessages.map((videoMessage) => {
             const metadata = new VideoMessageMetadata();
             metadata.setId(videoMessage.id);
             metadata.setTitle(videoMessage.title);
@@ -34,19 +33,21 @@ async function listVideoMessages(call: ServerUnaryCall<ListVideoMessagesRequest,
             metadata.setCreatedBy(videoMessage.createdBy);
             metadata.setSize(videoMessage.size);
             metadata.setDuration(videoMessage.duration);
-
-            videoMessageMetadata.push(metadata);
-        }
-
+            return metadata;
+        });
 
         response.setMessagesList(videoMessageMetadata);
-        response.setTotalCount(await prisma.videoMessage.count());
+        response.setTotalCount(totalCount);
         callback(null, response);
     } catch (error) {
-        callback({
-            code: status.INTERNAL,
-            message: error as string,
-        }, null);
+        callback(
+            {
+                code: status.INTERNAL,
+                message: 'An error occurred while listing video messages.',
+            },
+            null
+        );
+        console.error('Error listing video messages:', error);
     }
 }
 

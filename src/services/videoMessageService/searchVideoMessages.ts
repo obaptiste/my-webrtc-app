@@ -1,15 +1,11 @@
 import { ServerUnaryCall, sendUnaryData, status } from '@grpc/grpc-js';
-import { SearchVideoMessagesRequest, SearchVideoMessagesResponse, VideoMessageMetadata } from '../../../generated/proto/video_messaging_pb.d.2ts';
+import { SearchVideoMessagesRequest, SearchVideoMessagesResponse, VideoMessageMetadata } from '../../../generated/proto/video_messaging_pb.d';
 import prisma from '../../../lib/prisma';
 
-/**
- * Search video messages.
- *
- * @param call The gRPC call object.
- * @param callback The callback function.
- */
-
-async function searchVideoMessages(call: ServerUnaryCall<SearchVideoMessagesRequest, SearchVideoMessagesResponse>, callback: sendUnaryData<SearchVideoMessagesResponse>) {
+async function searchVideoMessages(
+    call: ServerUnaryCall<SearchVideoMessagesRequest, SearchVideoMessagesResponse>,
+    callback: sendUnaryData<SearchVideoMessagesResponse>
+) {
     const request = call.request;
     const query = request.getQuery();
     const recipientId = request.getRecipientId();
@@ -26,21 +22,19 @@ async function searchVideoMessages(call: ServerUnaryCall<SearchVideoMessagesRequ
                     { description: { contains: query } },
                 ],
                 recipientId: parseInt(recipientId),
+                createdAt: {
+                    gte: startTime ? new Date(startTime) : undefined,
+                    lte: endTime ? new Date(endTime) : undefined,
+                },
             },
             take: pageSize,
             skip: pageToken ? 1 : 0,
-            orderBy: {
-                createdAt: 'desc',
-            },
-            include: {
-                videoChunks: true,
-            },
+            orderBy: { createdAt: 'desc' },
+            include: { videoChunks: true },
         });
 
         const response = new SearchVideoMessagesResponse();
-        const videoMessageMetadata: VideoMessageMetadata[] = [];
-
-        for (const videoMessage of videoMessages) {
+        const videoMessageMetadata: VideoMessageMetadata[] = videoMessages.map((videoMessage) => {
             const metadata = new VideoMessageMetadata();
             metadata.setId(videoMessage.id);
             metadata.setTitle(videoMessage.title);
@@ -49,19 +43,21 @@ async function searchVideoMessages(call: ServerUnaryCall<SearchVideoMessagesRequ
             metadata.setCreatedBy(videoMessage.createdBy);
             metadata.setSize(videoMessage.size);
             metadata.setDuration(videoMessage.duration);
-
-            videoMessageMetadata.push(metadata);
-        }
+            return metadata;
+        });
 
         response.setMessagesList(videoMessageMetadata);
         response.setTotalCount(videoMessageMetadata.length);
-
         callback(null, response);
     } catch (error) {
-        callback({
-            code: status.INTERNAL,
-            message: (error as Error).message,
-        }, null);
+        callback(
+            {
+                code: status.INTERNAL,
+                message: 'An error occurred while searching for video messages.',
+            },
+            null
+        );
+        console.error('Error searching for video messages:', error);
     }
 }
 

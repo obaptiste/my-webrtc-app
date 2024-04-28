@@ -1,41 +1,18 @@
 import * as grpc from '@grpc/grpc-js';
-import * as protoLoader from '@grpc/proto-loader';
-import { VideoMessageChunk, VideoMessageMetadata, GetVideoMessageRequest, ListVideoMessagesRequest, ListVideoMessagesResponse, DeleteVideoMessageRequest, DeleteVideoMessageResponse, SearchVideoMessagesRequest, SearchVideoMessagesResponse } from '../../../generated/proto/video_messaging_pb';
+import {
+    VideoMessageChunk,
+    VideoMessageMetadata,
+} from '../../../generated/proto/video_messaging_pb';
 import prisma from '../../../lib/prisma';
-import { ServiceClientConstructor } from '@grpc/grpc-js';
 import { ServerDuplexStream } from '@grpc/grpc-js';
-import StatusObject from '../../../node_modules/@grpc/grpc-js/build/src/call';
-import type { StatusObject as StatusObjectGrpcJs } from '@grpc/grpc-js';
 import { VideoMessage } from '@prisma/client';
-import fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
 import { VideoMessageServiceHandlers } from './updateVideoMessage';
 import storeVideoPermanently from '../../../lib/storeVideoPermanently';
-import getVideoMessageMetaData from './getVideoMessageMetaData';
 
-const PROTO_PATH = '../../lib/proto/video_messaging.proto';
-const packageDefinition = protoLoader.loadSync(PROTO_PATH);
-const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
-// Add the import statement above
-
-
-
-
-/**
- * Uploads a video message to the database.
- *
- * 
- * 
- * 
- * @param call The gRPC call object.
- */
-
-
-
-
-const uploadVideoMessage: VideoMessageServiceHandlers['UploadVideoMessage'] = async (call: ServerDuplexStream<VideoMessageChunk, VideoMessageMetadata>) => {
+const uploadVideoMessage: VideoMessageServiceHandlers['UploadVideoMessage'] = async (
+    call: ServerDuplexStream<VideoMessageChunk, VideoMessageMetadata>
+) => {
     const videoChunks: VideoMessageChunk[] = [];
-
     let messageId = '';
 
     try {
@@ -43,35 +20,33 @@ const uploadVideoMessage: VideoMessageServiceHandlers['UploadVideoMessage'] = as
             if (!messageId) {
                 messageId = chunk.getMessageId();
             }
+            // Validate chunk size and order if needed
+            if (chunk.getChunkIndex() !== videoChunks.length) {
+                throw new Error('Invalid chunk order');
+            }
             videoChunks.push(chunk);
         });
 
         call.on('end', async () => {
-            const tempFilePath = ``;
+            if (videoChunks.length === 0) {
+                throw new Error('No video chunks received');
+            }
             const messageId = videoChunks[0].getMessageId();
-            const vidUrl = await storeVideoPermanently(tempFilePath, messageId);
-            // const generateVideoUrl = (messageId: string): string => {
-            //     // Generate the video URL based on the messageId
-            //     return `https://example.com/videos/${messageId}.mp4`;
-            // };
+            const vidUrl = await storeVideoPermanently(videoChunks, messageId);
+
             const videoMessage: VideoMessage = await prisma.videoMessage.upsert({
-                where: {
-                    id: messageId,
-                },
-                update: {
-                    videoUrl: vidUrl,
-                    //metadata:getVideoMessageMetadata(messageId),
-                },
+                where: { id: messageId },
+                update: { videoUrl: vidUrl },
                 create: {
                     id: messageId,
                     videoUrl: vidUrl,
                     title: '',
                     description: '',
                     createdBy: '',
-                    size: 0,
+                    size: getTotalChunkSize(videoChunks),
                     duration: 0,
-                    senderId: 0, // Add sender property
-                    recipientId: 0, // Add recipient property
+                    senderId: 0,
+                    recipientId: 0,
                 },
             });
 
@@ -80,20 +55,31 @@ const uploadVideoMessage: VideoMessageServiceHandlers['UploadVideoMessage'] = as
             response.setTitle(videoMessage.title);
             response.setDescription(videoMessage.description);
             response.setCreatedBy(videoMessage.createdBy);
+            // Set additional metadata fields if needed
             call.write(response);
             call.end();
-        })
-
+        });
     } catch (error) {
         console.error('Error uploading video message:', error);
-        call.emit('error'), StatusObject.callErrorFromStatus({
+        call.emit('error', {
             code: grpc.status.INTERNAL,
-            details: 'Error uploading video message',
-            metadata: new grpc.Metadata(),
-        }, 'Error uploading video message');
+            message: 'Error uploading video message',
+        });
     }
-
-
 };
+
+// Helper function to calculate total chunk size
+function getTotalChunkSize(chunks: VideoMessageChunk[]): number {
+    return chunks.reduce((total, chunk) => total + chunk.getData().length, 0);
+}
+
+// Error handling function
+function handleError(call: ServerDuplexStream<any, any>, error: Error) {
+    console.error('Error in uploadVideoMessage:', error);
+    call.emit('error', {
+        code: grpc.status.INTERNAL,
+        message: 'An error occurred while uploading the video message',
+    });
+}
 
 export default uploadVideoMessage;

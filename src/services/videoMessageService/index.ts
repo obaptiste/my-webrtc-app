@@ -7,18 +7,16 @@ import { ServerDuplexStream, ServerUnaryCall, sendUnaryData } from '@grpc/grpc-j
 
 
 export interface VideoMessageServiceHandlers {
-    GetVideoMessageMetaData(call: ServerUnaryCall<GetVideoMessageRequest, VideoMessageMetadata>): void;
     UploadVideoMessage(call: ServerDuplexStream<VideoMessageChunk, VideoMessageMetadata>): void;
     GetVideoMessage(call: ServerUnaryCall<GetVideoMessageRequest, VideoMessageMetadata>, callback: grpc.sendUnaryData<VideoMessageChunk>): void;
-    ListVideoMessages(call: ServerUnaryCall<ListVideoMessagesRequest, ListVideoMessagesResponse>): void;
-    DeleteVideoMessage(call: ServerUnaryCall<DeleteVideoMessageRequest, DeleteVideoMessageResponse>): void;
-    SearchVideoMessages(call: ServerUnaryCall<SearchVideoMessagesRequest, SearchVideoMessagesResponse>): void;
+    ListVideoMessages(call: ServerUnaryCall<ListVideoMessagesRequest, ListVideoMessagesResponse>, callback: sendUnaryData<ListVideoMessagesResponse>): void;
+    DeleteVideoMessage(call: ServerUnaryCall<DeleteVideoMessageRequest, DeleteVideoMessageResponse>, callback: sendUnaryData<DeleteVideoMessageResponse>): void;
+    SearchVideoMessages(call: ServerUnaryCall<SearchVideoMessagesRequest, SearchVideoMessagesResponse>, callback: sendUnaryData<SearchVideoMessagesResponse>): void;
 }
 
 export interface VideoMessageServiceDefinition {
     VideoMessagingService: {
         service: {
-            GetVideoMessageMetaData: grpc.handleUnaryCall<GetVideoMessageRequest, VideoMessageMetadata>,
             UploadVideoMessage: grpc.handleServerStreamingCall<VideoMessageChunk, VideoMessageMetadata>,
             GetVideoMessage: grpc.handleClientStreamingCall<GetVideoMessageRequest, VideoMessageChunk>,
 

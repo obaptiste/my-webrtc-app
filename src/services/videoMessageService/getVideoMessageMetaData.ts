@@ -9,11 +9,7 @@ import { GetVideoMessageRequest } from "@/generated/proto/video_messaging_pb"; /
 import fs from 'fs';
 import prisma from "@/lib/prisma";
 
-declare module "@/src/services/videoMessageService" {
-    interface VideoMessageServiceHandlers {
-        GetVideoMessageMetadata: grpc.handleServerStreamingCall<GetVideoMessageRequest, VideoMessageMetadata>;
-    }
-}
+
 
 async function getVideoMessageMetaData(messageId: string): Promise<VideoMessageMetadata | null | grpc.StatusObject> {
     try {

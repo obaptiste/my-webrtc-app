@@ -1,10 +1,10 @@
 import Image from "next/image";
-import VideoCall from "../app/components/videoCall";
+import VideoRecorder from "../app/components/VideoRecorder";
 
 export default function Home() {
   return (
     <div>
-      <VideoCall />
+      <VideoRecorder />
     </div>
   );
 }

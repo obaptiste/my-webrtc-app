@@ -8,6 +8,7 @@ import { ServerUnaryCall, sendUnaryData, status } from '@grpc/grpc-js';
 import { VideoMessageServiceHandlers } from '@/src/services/videoMessageService';
 import StatusObject from '../../../node_modules/@grpc/grpc-js/build/src/call';
 import fs from 'fs';
+import { VideoNotFoundError, FileNotFoundError } from '@/lib/errors';
 
 
 const prisma = new PrismaClient();
@@ -21,53 +22,49 @@ const videoChunks: VideoChunk[] = [];
 const getVideoMessage: VideoMessageServiceHandlers['GetVideoMessage'] = async (
     call: ServerWritableStream<GetVideoMessageRequest, VideoMessageChunk> // Update the type of 'call' parameter
 ) => {
-    const messageId = (call as any).request.getMessageId();
-
     try {
+        const messageId = (call as any).request.getMessageId();
+
+
+
         const videoMessage = await prisma.videoMessage.findUnique({
             where: { id: messageId },
             include: { videoChunks: true },
         });
 
         if (!videoMessage) {
-            const error: any = new Error('Message not found');
-            error.code = grpc.status.NOT_FOUND;
-            call.emit('error', error);
-            return;
+            throw new VideoNotFoundError('Video not found');
         }
 
-        if (videoMessage && videoMessage.videoChunks) {
-            const videoStream = fs.createReadStream(videoMessage.videoUrl);
-
-            let chunkIndex = 0;
-
-            videoStream.on('data', (chunk) => {
-                const videoChunk = new VideoMessageChunk();
-                videoChunk.setMessageId(messageId);
-                videoChunk.setChunkIndex(chunkIndex);
-                videoChunk.setData(chunk);
-                call.write(videoChunk);
-                chunkIndex++;
-            });
-
-            videoStream.on('end', () => {
-                call.end();
-            });
-
-            videoStream.on('error', (error) => {
-                call.emit('error', error);
-            });
+        if (videoMessage?.videoUrl && !fs.existsSync(videoMessage.videoUrl)) {
+            throw new FileNotFoundError('Video file not found');
         }
 
-        for (const chunk of videoMessage.videoChunks) {
-            const videoMessageChunk = new VideoMessageChunk(); // Remove the argument from the constructor
-            videoMessageChunk.setMessageId(messageId); // Set the messageId using the setter method
-            videoMessageChunk.setChunkIndex(chunk.index);
-            videoMessageChunk.setData(chunk.data);
-            call.write(videoMessageChunk);
-        }
+        const videoStream = videoMessage && fs.createReadStream(videoMessage.videoUrl);
+
+        let chunkIndex = 0;
+
+        videoStream.on('data', (chunk) => {
+            const videoChunk = new VideoMessageChunk();
+            videoChunk.setMessageId(messageId);
+            videoChunk.setChunkIndex(chunkIndex);
+            videoChunk.setData(chunk);
+            call.write(videoChunk);
+            chunkIndex++;
+        });
+
+        videoStream.on('end', () => {
+            call.end();
+        });
+
+        videoStream.on('error', (error) => {
+            console.error('Error reading video file:', error); // Log the error
+            call.emit('error', status.INTERNAL, 'failed to read video'); // Emit an error to the client
+            call.end();
+        });
 
     } catch (error) {
+
         console.error('Error fetching video message:', error);
         call.emit('error', StatusObject.callErrorFromStatus({
             code: grpc.status.INTERNAL,

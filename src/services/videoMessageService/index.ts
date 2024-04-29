@@ -15,7 +15,8 @@ export interface VideoMessageServiceHandlers {
     SearchVideoMessages(call: ServerUnaryCall<SearchVideoMessagesRequest, SearchVideoMessagesResponse>, callback: sendUnaryData<SearchVideoMessagesResponse>): void;
 }
 
-export interface VideoMessageServiceDefinition extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation> { VideoMessagingService: grpc.MethodDefinition<any, any>;
+export interface VideoMessageServiceDefinition extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation> {
+    VideoMessagingService: grpc.MethodDefinition<any, any>;
 }
 
 // index.ts

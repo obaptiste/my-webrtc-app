@@ -2,13 +2,14 @@ import * as grpc from "@grpc/grpc-js";
 import * as protoLoader from "@grpc/proto-loader";
 import { VideoMessageServiceDefinition, VideoMessageServiceHandlers } from "../";
 import prisma from "@/lib/prisma";
-import { UploadVideoMessage, GetVideoMessage, DeleteVideoMessage, ListVideoMessages, SearchVideoMessages } from "../../videoMessageService";
+import { UploadVideoMessage, } from "../../videoMessageService";
 import { VideoMessageChunk, VideoMessageMetadata, GetVideoMessageRequest, ListVideoMessagesRequest, ListVideoMessagesResponse, DeleteVideoMessageRequest, DeleteVideoMessageResponse, SearchVideoMessagesRequest, SearchVideoMessagesResponse } from "@/generated/proto/video_messaging_pb";
 import deleteVideoMessage from "../deleteVideoMessage";
 import getVideoMessage from "../getVideoMessage";
 import listVideoMessages from "../listVideoMessages";
 import searchVideoMessages from "../searchVideoMessages";
 import uploadVideoMessage from "../uploadVideoMessage";
+import { FileNotFoundError, VideoNotFoundError } from "@/lib/errors";
 
 
 const PROTO_PATH = "../../lib/proto/video_messaging.proto";
@@ -30,11 +31,42 @@ const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as unknown
 const server = new grpc.Server();
 
 const myServiceHandlers: VideoMessageServiceHandlers = {
-    UploadVideoMessage: (call: grpc.ServerDuplexStream<VideoMessageChunk, VideoMessageMetadata>) => {
-        uploadVideoMessage(call);
+    UploadVideoMessage: async (call: grpc.ServerDuplexStream<VideoMessageChunk, VideoMessageMetadata>) => {
+        try {
+            await uploadVideoMessage(call);
+        } catch (error) {
+            if (error instanceof FileNotFoundError) {
+                call.emit('error', {
+                    code: grpc.status.NOT_FOUND,
+                    'Error with video file': (error as Error).message,
+                });
+            } else {
+                call.emit('error', {
+                    code: grpc.status.INTERNAL,
+                    'Unexpected error occured': (error as Error).message,
+                });
+
+            }
+        }
     },
-    GetVideoMessage: (call: grpc.ServerWritableStream<GetVideoMessageRequest, VideoMessageChunk>) => {
-        getVideoMessage(call);
+    GetVideoMessage: async (call: grpc.ServerWritableStream<GetVideoMessageRequest, VideoMessageChunk>) => {
+        try {
+            await getVideoMessage(call);
+        } catch (error) {
+            if (error instanceof VideoNotFoundError || error instanceof FileNotFoundError) {
+                call.emit('error', {
+                    code: grpc.status.NOT_FOUND,
+                    'Error with video file': (error as Error).message,
+                });
+            } else {
+                call.emit('error', {
+                    code: grpc.status.INTERNAL,
+                    'Unexpected error occured': (error as Error).message,
+                });
+
+            }
+        }
+
     },
     ListVideoMessages: (call: grpc.ServerUnaryCall<ListVideoMessagesRequest, ListVideoMessagesResponse>, callback: grpc.sendUnaryData<ListVideoMessagesResponse>) => {
         listVideoMessages(call, callback);

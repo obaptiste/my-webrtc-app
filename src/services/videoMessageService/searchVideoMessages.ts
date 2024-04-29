@@ -1,6 +1,8 @@
 import { ServerUnaryCall, sendUnaryData, status } from '@grpc/grpc-js';
 import { SearchVideoMessagesRequest, SearchVideoMessagesResponse, VideoMessageMetadata } from '../../../generated/proto/video_messaging_pb.d';
 import prisma from '../../../lib/prisma';
+import { VideoNotFoundError } from '@/lib/errors';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 async function searchVideoMessages(
     call: ServerUnaryCall<SearchVideoMessagesRequest, SearchVideoMessagesResponse>,
@@ -33,6 +35,10 @@ async function searchVideoMessages(
             include: { videoChunks: true },
         });
 
+        if (videoMessages.length === 0) {
+            throw new VideoNotFoundError('No matching video messages found.');
+        }
+
         const response = new SearchVideoMessagesResponse();
         const videoMessageMetadata: VideoMessageMetadata[] = videoMessages.map((videoMessage) => {
             const metadata = new VideoMessageMetadata();
@@ -50,14 +56,33 @@ async function searchVideoMessages(
         response.setTotalCount(videoMessageMetadata.length);
         callback(null, response);
     } catch (error) {
-        callback(
-            {
-                code: status.INTERNAL,
-                message: 'An error occurred while searching for video messages.',
-            },
-            null
-        );
-        console.error('Error searching for video messages:', error);
+        if (error instanceof VideoNotFoundError) {
+            callback(
+                {
+                    code: status.NOT_FOUND,
+                    message: error.message,
+                },
+                null
+            );
+            return;
+        } else if (error instanceof PrismaClientKnownRequestError) {
+            callback(
+                {
+                    code: status.INTERNAL,
+                    message: 'A database error occurred while searching for video messages.',
+                },
+                null
+            );
+        } else {
+            console.error('Error searching for video messages:', error);
+            callback(
+                {
+                    code: status.INTERNAL,
+                    message: 'An unexpected error occurred while searching for video messages.',
+                },
+                null
+            );
+        }
     }
 }
 

@@ -5,11 +5,11 @@ import { PrismaClient } from "@prisma/client";
 import {
   VideoMessageChunk,
   VideoMessageMetadata,
-} from "../../generated/proto/video_messaging_pb.d.2ts";
-import { ClientDuplexStream } from "@grpc/grpc-js";
+} from "../../generated/proto/video_messaging_pb.d";
+import { ClientDuplexStream, ServerWritableStream } from "@grpc/grpc-js";
 import { createDuplexStream } from "grpc-web-helpers";
-import { uploadVideoMessage } from "@/src/services/videoMessageService";
 import { ServerDuplexStream } from "@grpc/grpc-js";
+import uploadVideoMessage from "@/src/services/videoMessageService/uploadVideoMessage";
 
 const MAX_CHUNK_SIZE = 1024 * 1024; // 1MB
 
@@ -66,10 +66,9 @@ const VideoUpload = () => {
       VideoMessageChunk
     > = createDuplexStream();
 
-    uploadVideoMessage(
-      duplexStreamInstance as ServerDuplexStream<
+    uploadVideoMessage(duplexStreamInstance);
         VideoMessageChunk,
-        VideoMessageChunk
+        VideoMessageMetadata
       >
     );
     try {

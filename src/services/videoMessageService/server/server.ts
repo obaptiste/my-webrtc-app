@@ -34,6 +34,8 @@ const myServiceHandlers: VideoMessageServiceHandlers = {
     UploadVideoMessage: async (call: grpc.ServerDuplexStream<VideoMessageChunk, VideoMessageMetadata>) => {
         try {
             await uploadVideoMessage(call);
+            return call;
+
         } catch (error) {
             if (error instanceof FileNotFoundError) {
                 call.emit('error', {

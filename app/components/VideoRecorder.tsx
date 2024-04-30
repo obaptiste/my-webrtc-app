@@ -1,14 +1,15 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import * as grpc from "@grpc/grpc-js";
+import { Metadata } from "grpc-web";
 import { useVideoContext } from "../contexts/VideoContext";
 import { v4 as uuidv4 } from "uuid";
 import { Button, Grid, Typography } from "@mui/material";
-import styles from "./VideoRecorder.module.css";
+import { VideoMessagingServiceClient } from "../../generated/Video_messagingServiceClientPb";
 import {
   VideoMessageChunk,
   VideoMessageMetadata,
-} from "@/generated/proto/video_messaging_pb";
+} from "../../generated/video_messaging_pb";
+import styles from "./VideoRecorder.module.css";
 interface VideoRecorderProps {
   onRecordingComplete: (videoBlob: Blob) => void;
   // Add props if needed, e.g., for handling recorded video data
@@ -111,6 +112,8 @@ function VideoRecorder({ onRecordingComplete }: VideoRecorderProps) {
     }
   };
 
+  // ...
+
   const handleRecordingComplete = async (videoBlob: Blob) => {
     console.log("Recording complete", videoBlob);
     try {
@@ -130,11 +133,8 @@ function VideoRecorder({ onRecordingComplete }: VideoRecorderProps) {
         chunkIndex++;
       }
 
-      const client = new grpc.Client(
-        "localhost:50051",
-        grpc.credentials.createInsecure()
-      );
-      const metadata = new grpc.Metadata();
+      const client = new Client("http://localhost:8080");
+      const metadata: any = new Metadata();
       metadata.set("message-id", messageId);
       const stream = client.makeBidiStreamRequest(
         "/video_messaging.VideoMessaging/UploadVideoMessage",

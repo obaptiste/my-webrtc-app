@@ -1,4 +1,4 @@
-// source: proto/webrtc.proto
+// source: webrtc.proto
 /**
  * @fileoverview
  * @enhanceable

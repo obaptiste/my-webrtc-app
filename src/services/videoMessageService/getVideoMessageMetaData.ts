@@ -2,10 +2,10 @@
 
 import * as grpc from '@grpc/grpc-js';
 import StatusObject from '@grpc/grpc-js/build/src/call';
-import { VideoMessageMetadata } from "@/generated/proto/video_messaging_pb";
+import { VideoMessageMetadata } from "@/generated/video_message_pb";
 import { ServerUnaryCall, ServerWritableStream } from "@grpc/grpc-js";
 import { VideoMessageServiceHandlers } from "@/src/services/videoMessageService"; // Import the necessary type declaration
-import { GetVideoMessageRequest } from "@/generated/proto/video_messaging_pb"; // Import the necessary type declaration
+import { GetVideoMessageRequest } from "@/generated/video_message_pb"; // Import the necessary type declaration
 import fs from 'fs';
 import prisma from "@/lib/prisma";
 

@@ -1,22 +1,24 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
+import { VideoContext } from "../contexts/VideoContext";
+
 import { Metadata } from "grpc-web";
 import { useVideoContext } from "../contexts/VideoContext";
 import { v4 as uuidv4 } from "uuid";
 import { Button, Grid, Typography } from "@mui/material";
-import { VideoMessagingServiceClient } from "../../generated/Video_messagingServiceClientPb";
-import {
-  VideoMessageChunk,
-  VideoMessageMetadata,
-} from "../../generated/video_messaging_pb";
+
 import styles from "./VideoRecorder.module.css";
 interface VideoRecorderProps {
   onRecordingComplete: (videoBlob: Blob) => void;
   // Add props if needed, e.g., for handling recorded video data
 }
 
+
+
 function VideoRecorder({ onRecordingComplete }: VideoRecorderProps) {
+  const [uploadProgress, setUploadProgress] = useState<number | undefined>(undefined);
   const [isRecording, setIsRecording] = useState<boolean>(false);
+
   const [duration, setDuration] = useState<number>(0);
   const [showOverlay, setShowOverlay] = useState<boolean>(false);
   const [countdown, setCountdown] = useState<number | null>(null);
@@ -116,88 +118,60 @@ function VideoRecorder({ onRecordingComplete }: VideoRecorderProps) {
 
   const handleRecordingComplete = async (videoBlob: Blob) => {
     console.log("Recording complete", videoBlob);
-    try {
-      const messageId = uuidv4();
-      const chunkSize = 1024 * 1024; // 1MB
 
-      const videoChunks: VideoMessageChunk[] = [];
-      let chunkIndex = 0;
-
-      for (let start = 0; start < videoBlob.size; start += chunkSize) {
-        const chunk = videoBlob.slice(start, start + chunkSize);
-        const videoChunk = new VideoMessageChunk();
-        videoChunk.setMessageId(messageId);
-        videoChunk.setChunkIndex(chunkIndex);
-        videoChunk.setData(new Uint8Array(await chunk.arrayBuffer()));
-        videoChunks.push(videoChunk);
-        chunkIndex++;
+    this.videoUploadManager.uploadVideo(videoBlob, metadata).subscribe(
+      (progress) => {
+        setUploadProgress(progress);
+      },
+      (error) => {
+        console.error("Error uploading video:", error);
+      },
+      () => {
+        console.log("Video uploaded successfully");
       }
-
-      const client = new Client("http://localhost:8080");
-      const metadata: any = new Metadata();
-      metadata.set("message-id", messageId);
-      const stream = client.makeBidiStreamRequest(
-        "/video_messaging.VideoMessaging/UploadVideoMessage",
-        (chunk: VideoMessageChunk) =>
-          chunk.serializeBinary() as Uint8Array as Buffer,
-        VideoMessageMetadata.deserializeBinary,
-        metadata
-      );
-
-      stream.on("data", (response: VideoMessageMetadata) => {
-        console.log("Video uploaded successfully:", response.toObject());
-      });
-
-      stream.on("error", (err: Error) => {
-        console.error("Error uploading video message:", err);
-      });
-
-      for (const chunk of videoChunks) {
-        stream.write(chunk);
-      }
-
-      stream.end();
-    } catch (error) {
-      console.error("Error uploading video message:", error);
-    }
+    );
   };
-  recordedChunksRef.current = [];
 
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={12}>
-        {showOverlay && (
-          <div className={styles.recordingOverlay}>
-            {countdown ? (
-              <Typography variant="h4">Time Remaining: {countdown}</Typography>
-            ) : (
-              <Typography variant="h5">30 Seconds Remaining</Typography>
-            )}
-          </div>
-        )}
-        <video ref={videoRef} width="400" autoPlay muted />
+    <VideoContext.Provider value={{ recordedVideo, setRecordedVideo, progress: uploadProgress }}>
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          {showOverlay && (
+            <div className={styles.recordingOverlay}>
+              {countdown ? (
+                <Typography variant="h4">
+                  Time Remaining: {countdown}
+                </Typography>
+              ) : (
+                <Typography variant="h5">30 Seconds Remaining</Typography>
+              )}
+            </div>
+          )}
+          <video ref={videoRef} width="400" autoPlay muted />
+        </Grid>
+        <Grid item xs={6}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleStartRecording}
+            disabled={isRecording}
+          >
+            Start Recording
+          </Button>
+        </Grid>
+        <Grid item xs={6}>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={handleStopRecording}
+            disabled={!isRecording}
+          >
+            Stop Recording
+          </Button>
+        </Grid>
       </Grid>
-      <Grid item xs={6}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleStartRecording}
-          disabled={isRecording}
-        >
-          Start Recording
-        </Button>
-      </Grid>
-      <Grid item xs={6}>
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={handleStopRecording}
-          disabled={!isRecording}
-        >
-          Stop Recording
-        </Button>
-      </Grid>
-    </Grid>
+      <VideoRecorder onRecordingComplete={handleRecordingComplete} />
+    </VideoContext.Provider>
   );
 }
 

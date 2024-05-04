@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { VideoMessageChunk } from '../generated/proto/video_messaging_pb';
+import { VideoMessageChunk } from '../generated/video_message_pb';
 
 async function storeVideoLocally(videoChunks: VideoMessageChunk[], messageId: string): Promise<string> {
     const videoDir = path.join(__dirname, '..', '..', '..', 'uploads', 'videos');

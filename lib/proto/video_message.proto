@@ -1,15 +1,19 @@
 syntax = "proto3";
 
-package video_messaging_service;
+package video_message_service;
 
-service VideoMessagingService {
-  rpc UploadVideoMessage (stream VideoMessageChunk) returns (VideoMessageMetadata) {}
+service VideoMessageService {
   rpc GetVideoMessage (GetVideoMessageRequest) returns (stream VideoMessageChunk) {}
+  rpc UploadVideoMessage (stream VideoMessageChunk) returns (stream VideoMessageMetadata) {}
   rpc ListVideoMessages (ListVideoMessagesRequest) returns (ListVideoMessagesResponse) {}
   rpc DeleteVideoMessage (DeleteVideoMessageRequest) returns (DeleteVideoMessageResponse) {}
   rpc SearchVideoMessages (SearchVideoMessagesRequest) returns (SearchVideoMessagesResponse) {}
   rpc GetVideoMessageMetadata (GetVideoMessageMetadataRequest) returns (VideoMessageMetadata) {}
   
+}
+
+message UploadVideoMessageRequest {
+  VideoMessageMetadata metadata = 1;
 }
 
 message VideoMessageChunk {

@@ -3,7 +3,7 @@ import * as protoLoader from "@grpc/proto-loader";
 import { VideoMessageServiceDefinition, VideoMessageServiceHandlers } from "../";
 import prisma from "@/lib/prisma";
 import { UploadVideoMessage, } from "../../videoMessageService";
-import { VideoMessageChunk, VideoMessageMetadata, GetVideoMessageRequest, ListVideoMessagesRequest, ListVideoMessagesResponse, DeleteVideoMessageRequest, DeleteVideoMessageResponse, SearchVideoMessagesRequest, SearchVideoMessagesResponse } from "@/generated/proto/video_messaging_pb";
+import { VideoMessageChunk, VideoMessageMetadata, GetVideoMessageRequest, ListVideoMessagesRequest, ListVideoMessagesResponse, DeleteVideoMessageRequest, DeleteVideoMessageResponse, SearchVideoMessagesRequest, SearchVideoMessagesResponse } from "@/generated/video_message_pb";
 import deleteVideoMessage from "../deleteVideoMessage";
 import getVideoMessage from "../getVideoMessage";
 import listVideoMessages from "../listVideoMessages";
@@ -86,6 +86,7 @@ server.addService(protoDescriptor.VideoMessagingService as unknown as grpc.Servi
 
 
 ; // Add a closing parenthesis here
+
 
 // Remove this line since myServiceHandlers is not being used
 // const myServiceHandlers: VideoMessageServiceHandlers = {

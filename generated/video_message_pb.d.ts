@@ -1,25 +1,42 @@
-// package: video_messaging_service
-// file: video_messaging.proto
+import * as jspb from 'google-protobuf'
 
-import * as jspb from "google-protobuf";
+
+
+export class UploadVideoMessageRequest extends jspb.Message {
+  getMetadata(): VideoMessageMetadata | undefined;
+  setMetadata(value?: VideoMessageMetadata): UploadVideoMessageRequest;
+  hasMetadata(): boolean;
+  clearMetadata(): UploadVideoMessageRequest;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UploadVideoMessageRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: UploadVideoMessageRequest): UploadVideoMessageRequest.AsObject;
+  static serializeBinaryToWriter(message: UploadVideoMessageRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UploadVideoMessageRequest;
+  static deserializeBinaryFromReader(message: UploadVideoMessageRequest, reader: jspb.BinaryReader): UploadVideoMessageRequest;
+}
+
+export namespace UploadVideoMessageRequest {
+  export type AsObject = {
+    metadata?: VideoMessageMetadata.AsObject,
+  }
+}
 
 export class VideoMessageChunk extends jspb.Message {
   getMessageId(): string;
-  setMessageId(value: string): void;
+  setMessageId(value: string): VideoMessageChunk;
 
   getChunkIndex(): number;
-  setChunkIndex(value: number): void;
+  setChunkIndex(value: number): VideoMessageChunk;
 
   getData(): Uint8Array | string;
   getData_asU8(): Uint8Array;
   getData_asB64(): string;
-  setData(value: Uint8Array | string): void;
+  setData(value: Uint8Array | string): VideoMessageChunk;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VideoMessageChunk.AsObject;
   static toObject(includeInstance: boolean, msg: VideoMessageChunk): VideoMessageChunk.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
   static serializeBinaryToWriter(message: VideoMessageChunk, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): VideoMessageChunk;
   static deserializeBinaryFromReader(message: VideoMessageChunk, reader: jspb.BinaryReader): VideoMessageChunk;
@@ -35,51 +52,49 @@ export namespace VideoMessageChunk {
 
 export class VideoMessageMetadata extends jspb.Message {
   getId(): string;
-  setId(value: string): void;
+  setId(value: string): VideoMessageMetadata;
 
   getTitle(): string;
-  setTitle(value: string): void;
+  setTitle(value: string): VideoMessageMetadata;
 
   getDescription(): string;
-  setDescription(value: string): void;
+  setDescription(value: string): VideoMessageMetadata;
 
   getCreatedAt(): string;
-  setCreatedAt(value: string): void;
+  setCreatedAt(value: string): VideoMessageMetadata;
 
   getCreatedBy(): string;
-  setCreatedBy(value: string): void;
+  setCreatedBy(value: string): VideoMessageMetadata;
 
   getSize(): number;
-  setSize(value: number): void;
+  setSize(value: number): VideoMessageMetadata;
 
   getDuration(): number;
-  setDuration(value: number): void;
+  setDuration(value: number): VideoMessageMetadata;
 
   getSenderId(): string;
-  setSenderId(value: string): void;
+  setSenderId(value: string): VideoMessageMetadata;
 
   getRecipientId(): string;
-  setRecipientId(value: string): void;
+  setRecipientId(value: string): VideoMessageMetadata;
 
   getTimestamp(): number;
-  setTimestamp(value: number): void;
+  setTimestamp(value: number): VideoMessageMetadata;
 
   getTargetDurationSeconds(): number;
-  setTargetDurationSeconds(value: number): void;
+  setTargetDurationSeconds(value: number): VideoMessageMetadata;
 
   getActualDurationSeconds(): number;
-  setActualDurationSeconds(value: number): void;
+  setActualDurationSeconds(value: number): VideoMessageMetadata;
 
   getThumbnail(): Uint8Array | string;
   getThumbnail_asU8(): Uint8Array;
   getThumbnail_asB64(): string;
-  setThumbnail(value: Uint8Array | string): void;
+  setThumbnail(value: Uint8Array | string): VideoMessageMetadata;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VideoMessageMetadata.AsObject;
   static toObject(includeInstance: boolean, msg: VideoMessageMetadata): VideoMessageMetadata.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
   static serializeBinaryToWriter(message: VideoMessageMetadata, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): VideoMessageMetadata;
   static deserializeBinaryFromReader(message: VideoMessageMetadata, reader: jspb.BinaryReader): VideoMessageMetadata;
@@ -105,13 +120,11 @@ export namespace VideoMessageMetadata {
 
 export class GetVideoMessageRequest extends jspb.Message {
   getMessageId(): string;
-  setMessageId(value: string): void;
+  setMessageId(value: string): GetVideoMessageRequest;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetVideoMessageRequest.AsObject;
   static toObject(includeInstance: boolean, msg: GetVideoMessageRequest): GetVideoMessageRequest.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
   static serializeBinaryToWriter(message: GetVideoMessageRequest, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): GetVideoMessageRequest;
   static deserializeBinaryFromReader(message: GetVideoMessageRequest, reader: jspb.BinaryReader): GetVideoMessageRequest;
@@ -125,13 +138,11 @@ export namespace GetVideoMessageRequest {
 
 export class GetVideoMessageMetadataRequest extends jspb.Message {
   getMessageId(): string;
-  setMessageId(value: string): void;
+  setMessageId(value: string): GetVideoMessageMetadataRequest;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetVideoMessageMetadataRequest.AsObject;
   static toObject(includeInstance: boolean, msg: GetVideoMessageMetadataRequest): GetVideoMessageMetadataRequest.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
   static serializeBinaryToWriter(message: GetVideoMessageMetadataRequest, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): GetVideoMessageMetadataRequest;
   static deserializeBinaryFromReader(message: GetVideoMessageMetadataRequest, reader: jspb.BinaryReader): GetVideoMessageMetadataRequest;
@@ -145,37 +156,35 @@ export namespace GetVideoMessageMetadataRequest {
 
 export class ListVideoMessagesRequest extends jspb.Message {
   getRecipientId(): string;
-  setRecipientId(value: string): void;
+  setRecipientId(value: string): ListVideoMessagesRequest;
 
   getPageSize(): number;
-  setPageSize(value: number): void;
+  setPageSize(value: number): ListVideoMessagesRequest;
 
   getPageToken(): string;
-  setPageToken(value: string): void;
+  setPageToken(value: string): ListVideoMessagesRequest;
 
   getConversationId(): string;
-  setConversationId(value: string): void;
+  setConversationId(value: string): ListVideoMessagesRequest;
 
   getStartTime(): number;
-  setStartTime(value: number): void;
+  setStartTime(value: number): ListVideoMessagesRequest;
 
   getEndTime(): number;
-  setEndTime(value: number): void;
+  setEndTime(value: number): ListVideoMessagesRequest;
 
   getPage(): number;
-  setPage(value: number): void;
+  setPage(value: number): ListVideoMessagesRequest;
 
   getSortBy(): string;
-  setSortBy(value: string): void;
+  setSortBy(value: string): ListVideoMessagesRequest;
 
   getSortOrder(): string;
-  setSortOrder(value: string): void;
+  setSortOrder(value: string): ListVideoMessagesRequest;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListVideoMessagesRequest.AsObject;
   static toObject(includeInstance: boolean, msg: ListVideoMessagesRequest): ListVideoMessagesRequest.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
   static serializeBinaryToWriter(message: ListVideoMessagesRequest, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): ListVideoMessagesRequest;
   static deserializeBinaryFromReader(message: ListVideoMessagesRequest, reader: jspb.BinaryReader): ListVideoMessagesRequest;
@@ -196,19 +205,17 @@ export namespace ListVideoMessagesRequest {
 }
 
 export class ListVideoMessagesResponse extends jspb.Message {
-  clearMessagesList(): void;
   getMessagesList(): Array<VideoMessageMetadata>;
-  setMessagesList(value: Array<VideoMessageMetadata>): void;
+  setMessagesList(value: Array<VideoMessageMetadata>): ListVideoMessagesResponse;
+  clearMessagesList(): ListVideoMessagesResponse;
   addMessages(value?: VideoMessageMetadata, index?: number): VideoMessageMetadata;
 
   getTotalCount(): number;
-  setTotalCount(value: number): void;
+  setTotalCount(value: number): ListVideoMessagesResponse;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListVideoMessagesResponse.AsObject;
   static toObject(includeInstance: boolean, msg: ListVideoMessagesResponse): ListVideoMessagesResponse.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
   static serializeBinaryToWriter(message: ListVideoMessagesResponse, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): ListVideoMessagesResponse;
   static deserializeBinaryFromReader(message: ListVideoMessagesResponse, reader: jspb.BinaryReader): ListVideoMessagesResponse;
@@ -223,13 +230,11 @@ export namespace ListVideoMessagesResponse {
 
 export class DeleteVideoMessageRequest extends jspb.Message {
   getMessageId(): string;
-  setMessageId(value: string): void;
+  setMessageId(value: string): DeleteVideoMessageRequest;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DeleteVideoMessageRequest.AsObject;
   static toObject(includeInstance: boolean, msg: DeleteVideoMessageRequest): DeleteVideoMessageRequest.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
   static serializeBinaryToWriter(message: DeleteVideoMessageRequest, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): DeleteVideoMessageRequest;
   static deserializeBinaryFromReader(message: DeleteVideoMessageRequest, reader: jspb.BinaryReader): DeleteVideoMessageRequest;
@@ -243,13 +248,11 @@ export namespace DeleteVideoMessageRequest {
 
 export class DeleteVideoMessageResponse extends jspb.Message {
   getSuccess(): boolean;
-  setSuccess(value: boolean): void;
+  setSuccess(value: boolean): DeleteVideoMessageResponse;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DeleteVideoMessageResponse.AsObject;
   static toObject(includeInstance: boolean, msg: DeleteVideoMessageResponse): DeleteVideoMessageResponse.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
   static serializeBinaryToWriter(message: DeleteVideoMessageResponse, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): DeleteVideoMessageResponse;
   static deserializeBinaryFromReader(message: DeleteVideoMessageResponse, reader: jspb.BinaryReader): DeleteVideoMessageResponse;
@@ -263,28 +266,26 @@ export namespace DeleteVideoMessageResponse {
 
 export class SearchVideoMessagesRequest extends jspb.Message {
   getQuery(): string;
-  setQuery(value: string): void;
+  setQuery(value: string): SearchVideoMessagesRequest;
 
   getRecipientId(): string;
-  setRecipientId(value: string): void;
+  setRecipientId(value: string): SearchVideoMessagesRequest;
 
   getPageSize(): number;
-  setPageSize(value: number): void;
+  setPageSize(value: number): SearchVideoMessagesRequest;
 
   getPageToken(): string;
-  setPageToken(value: string): void;
+  setPageToken(value: string): SearchVideoMessagesRequest;
 
   getStartTime(): number;
-  setStartTime(value: number): void;
+  setStartTime(value: number): SearchVideoMessagesRequest;
 
   getEndTime(): number;
-  setEndTime(value: number): void;
+  setEndTime(value: number): SearchVideoMessagesRequest;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SearchVideoMessagesRequest.AsObject;
   static toObject(includeInstance: boolean, msg: SearchVideoMessagesRequest): SearchVideoMessagesRequest.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
   static serializeBinaryToWriter(message: SearchVideoMessagesRequest, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): SearchVideoMessagesRequest;
   static deserializeBinaryFromReader(message: SearchVideoMessagesRequest, reader: jspb.BinaryReader): SearchVideoMessagesRequest;
@@ -302,19 +303,17 @@ export namespace SearchVideoMessagesRequest {
 }
 
 export class SearchVideoMessagesResponse extends jspb.Message {
-  clearMessagesList(): void;
   getMessagesList(): Array<VideoMessageMetadata>;
-  setMessagesList(value: Array<VideoMessageMetadata>): void;
+  setMessagesList(value: Array<VideoMessageMetadata>): SearchVideoMessagesResponse;
+  clearMessagesList(): SearchVideoMessagesResponse;
   addMessages(value?: VideoMessageMetadata, index?: number): VideoMessageMetadata;
 
   getTotalCount(): number;
-  setTotalCount(value: number): void;
+  setTotalCount(value: number): SearchVideoMessagesResponse;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SearchVideoMessagesResponse.AsObject;
   static toObject(includeInstance: boolean, msg: SearchVideoMessagesResponse): SearchVideoMessagesResponse.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
   static serializeBinaryToWriter(message: SearchVideoMessagesResponse, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): SearchVideoMessagesResponse;
   static deserializeBinaryFromReader(message: SearchVideoMessagesResponse, reader: jspb.BinaryReader): SearchVideoMessagesResponse;

@@ -2,11 +2,11 @@ import * as grpc from '@grpc/grpc-js';
 import {
     VideoMessageChunk,
     VideoMessageMetadata,
-} from '../../../generated/proto/video_messaging_pb';
+} from '../../../generated/video_message_pb';
+import { VideoMessageServiceHandlers } from './'
 import prisma from '../../../lib/prisma';
 import { ServerDuplexStream } from '@grpc/grpc-js';
 import { VideoMessage } from '@prisma/client';
-import { VideoMessageServiceHandlers } from './updateVideoMessage';
 import storeVideoPermanently from '../../../lib/storeVideoPermanently';
 
 const uploadVideoMessage: VideoMessageServiceHandlers['UploadVideoMessage'] = async (

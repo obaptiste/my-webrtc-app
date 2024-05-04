@@ -1,7 +1,7 @@
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
-import { VideoMessageChunk, VideoMessageMetadata } from '@/generated/proto/video_messaging_pb';
-import { GetVideoMessageRequest, ListVideoMessagesRequest, ListVideoMessagesResponse, SearchVideoMessagesRequest, SearchVideoMessagesResponse, DeleteVideoMessageRequest, DeleteVideoMessageResponse } from '@/generated/proto/video_messaging_pb';
+import { VideoMessageChunk, VideoMessageMetadata } from '@/generated/video_message_pb';
+import { GetVideoMessageRequest, ListVideoMessagesRequest, ListVideoMessagesResponse, SearchVideoMessagesRequest, SearchVideoMessagesResponse, DeleteVideoMessageRequest, DeleteVideoMessageResponse } from '@/generated/video_message_pb';
 import { ServerDuplexStream, ServerUnaryCall, sendUnaryData, ServerWritableStream } from '@grpc/grpc-js';
 
 

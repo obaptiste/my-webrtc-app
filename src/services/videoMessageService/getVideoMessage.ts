@@ -2,8 +2,8 @@ import * as grpc from '@grpc/grpc-js';
 import { ServerDuplexStream, ServerWritableStream } from '@grpc/grpc-js'; // Add import for ServerWritableStream
 import * as protoLoader from '@grpc/proto-loader';
 import { PrismaClient, VideoMessage, VideoChunk } from '@prisma/client';
-import { VideoMessageMetadata, DeleteVideoMessageRequest, GetVideoMessageRequest, VideoMessageChunk, ListVideoMessagesRequest, ListVideoMessagesResponse, SearchVideoMessagesRequest, SearchVideoMessagesResponse } from '../../../generated/proto/video_messaging_pb.d';
-//import { VideoMessageChunk } from '../../generated/proto/video_messaging_pb';
+import { VideoMessageMetadata, DeleteVideoMessageRequest, GetVideoMessageRequest, VideoMessageChunk, ListVideoMessagesRequest, ListVideoMessagesResponse, SearchVideoMessagesRequest, SearchVideoMessagesResponse } from '../../../generated/video_message_pb.d';
+//import { VideoMessageChunk } from '../../generated/proto/video_message_pb';
 import { ServerUnaryCall, sendUnaryData, status } from '@grpc/grpc-js';
 import { VideoMessageServiceHandlers } from '@/src/services/videoMessageService';
 import StatusObject from '../../../node_modules/@grpc/grpc-js/build/src/call';

@@ -1,5 +1,5 @@
 import { ServerUnaryCall, sendUnaryData, status } from '@grpc/grpc-js';
-import { ListVideoMessagesRequest, ListVideoMessagesResponse, VideoMessageMetadata } from '../../../generated/proto/video_messaging_pb.d';
+import { ListVideoMessagesRequest, ListVideoMessagesResponse, VideoMessageMetadata } from '../../../generated/video_message_pb.d';
 import prisma from '../../../lib/prisma';
 
 async function listVideoMessages(

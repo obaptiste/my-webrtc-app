@@ -21,14 +21,20 @@ import * as video_message_pb from './video_message_pb'; // proto import: "video_
 
 
 export class VideoMessageServiceClient {
+  rpcCall(arg0: any) {
+    throw new Error('Method not implemented.');
+  }
+  static uploadVideoMessage(arg0: (error: grpcWeb.RpcError, response: video_message_pb.VideoMessageMetadata) => void): any {
+    throw new Error('Method not implemented.');
+  }
   client_: grpcWeb.AbstractClientBase;
   hostname_: string;
   credentials_: null | { [index: string]: string; };
   options_: null | { [index: string]: any; };
 
-  constructor (hostname: string,
-               credentials?: null | { [index: string]: string; },
-               options?: null | { [index: string]: any; }) {
+  constructor(hostname: string,
+    credentials?: null | { [index: string]: string; },
+    options?: null | { [index: string]: any; }) {
     if (!options) options = {};
     if (!credentials) credentials = {};
     options['format'] = 'text';
@@ -55,7 +61,7 @@ export class VideoMessageServiceClient {
     metadata?: grpcWeb.Metadata): grpcWeb.ClientReadableStream<video_message_pb.VideoMessageChunk> {
     return this.client_.serverStreaming(
       this.hostname_ +
-        '/video_message_service.VideoMessageService/GetVideoMessage',
+      '/video_message_service.VideoMessageService/GetVideoMessage',
       request,
       metadata || {},
       this.methodDescriptorGetVideoMessage);
@@ -80,28 +86,28 @@ export class VideoMessageServiceClient {
     request: video_message_pb.ListVideoMessagesRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: video_message_pb.ListVideoMessagesResponse) => void): grpcWeb.ClientReadableStream<video_message_pb.ListVideoMessagesResponse>;
+      response: video_message_pb.ListVideoMessagesResponse) => void): grpcWeb.ClientReadableStream<video_message_pb.ListVideoMessagesResponse>;
 
   listVideoMessages(
     request: video_message_pb.ListVideoMessagesRequest,
     metadata?: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: video_message_pb.ListVideoMessagesResponse) => void) {
+      response: video_message_pb.ListVideoMessagesResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
-          '/video_message_service.VideoMessageService/ListVideoMessages',
+        '/video_message_service.VideoMessageService/ListVideoMessages',
         request,
         metadata || {},
         this.methodDescriptorListVideoMessages,
         callback);
     }
     return this.client_.unaryCall(
-    this.hostname_ +
+      this.hostname_ +
       '/video_message_service.VideoMessageService/ListVideoMessages',
-    request,
-    metadata || {},
-    this.methodDescriptorListVideoMessages);
+      request,
+      metadata || {},
+      this.methodDescriptorListVideoMessages);
   }
 
   methodDescriptorDeleteVideoMessage = new grpcWeb.MethodDescriptor(
@@ -123,28 +129,28 @@ export class VideoMessageServiceClient {
     request: video_message_pb.DeleteVideoMessageRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: video_message_pb.DeleteVideoMessageResponse) => void): grpcWeb.ClientReadableStream<video_message_pb.DeleteVideoMessageResponse>;
+      response: video_message_pb.DeleteVideoMessageResponse) => void): grpcWeb.ClientReadableStream<video_message_pb.DeleteVideoMessageResponse>;
 
   deleteVideoMessage(
     request: video_message_pb.DeleteVideoMessageRequest,
     metadata?: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: video_message_pb.DeleteVideoMessageResponse) => void) {
+      response: video_message_pb.DeleteVideoMessageResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
-          '/video_message_service.VideoMessageService/DeleteVideoMessage',
+        '/video_message_service.VideoMessageService/DeleteVideoMessage',
         request,
         metadata || {},
         this.methodDescriptorDeleteVideoMessage,
         callback);
     }
     return this.client_.unaryCall(
-    this.hostname_ +
+      this.hostname_ +
       '/video_message_service.VideoMessageService/DeleteVideoMessage',
-    request,
-    metadata || {},
-    this.methodDescriptorDeleteVideoMessage);
+      request,
+      metadata || {},
+      this.methodDescriptorDeleteVideoMessage);
   }
 
   methodDescriptorSearchVideoMessages = new grpcWeb.MethodDescriptor(
@@ -166,28 +172,28 @@ export class VideoMessageServiceClient {
     request: video_message_pb.SearchVideoMessagesRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: video_message_pb.SearchVideoMessagesResponse) => void): grpcWeb.ClientReadableStream<video_message_pb.SearchVideoMessagesResponse>;
+      response: video_message_pb.SearchVideoMessagesResponse) => void): grpcWeb.ClientReadableStream<video_message_pb.SearchVideoMessagesResponse>;
 
   searchVideoMessages(
     request: video_message_pb.SearchVideoMessagesRequest,
     metadata?: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: video_message_pb.SearchVideoMessagesResponse) => void) {
+      response: video_message_pb.SearchVideoMessagesResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
-          '/video_message_service.VideoMessageService/SearchVideoMessages',
+        '/video_message_service.VideoMessageService/SearchVideoMessages',
         request,
         metadata || {},
         this.methodDescriptorSearchVideoMessages,
         callback);
     }
     return this.client_.unaryCall(
-    this.hostname_ +
+      this.hostname_ +
       '/video_message_service.VideoMessageService/SearchVideoMessages',
-    request,
-    metadata || {},
-    this.methodDescriptorSearchVideoMessages);
+      request,
+      metadata || {},
+      this.methodDescriptorSearchVideoMessages);
   }
 
   methodDescriptorGetVideoMessageMetadata = new grpcWeb.MethodDescriptor(
@@ -209,28 +215,28 @@ export class VideoMessageServiceClient {
     request: video_message_pb.GetVideoMessageMetadataRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: video_message_pb.VideoMessageMetadata) => void): grpcWeb.ClientReadableStream<video_message_pb.VideoMessageMetadata>;
+      response: video_message_pb.VideoMessageMetadata) => void): grpcWeb.ClientReadableStream<video_message_pb.VideoMessageMetadata>;
 
   getVideoMessageMetadata(
     request: video_message_pb.GetVideoMessageMetadataRequest,
     metadata?: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: video_message_pb.VideoMessageMetadata) => void) {
+      response: video_message_pb.VideoMessageMetadata) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
-          '/video_message_service.VideoMessageService/GetVideoMessageMetadata',
+        '/video_message_service.VideoMessageService/GetVideoMessageMetadata',
         request,
         metadata || {},
         this.methodDescriptorGetVideoMessageMetadata,
         callback);
     }
     return this.client_.unaryCall(
-    this.hostname_ +
+      this.hostname_ +
       '/video_message_service.VideoMessageService/GetVideoMessageMetadata',
-    request,
-    metadata || {},
-    this.methodDescriptorGetVideoMessageMetadata);
+      request,
+      metadata || {},
+      this.methodDescriptorGetVideoMessageMetadata);
   }
 
 }

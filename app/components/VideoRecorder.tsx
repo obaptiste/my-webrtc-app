@@ -1,22 +1,29 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { VideoContext } from "../contexts/VideoContext";
+import { IVideoRecorderProps, IVideoUploadManager } from "../interfaces/video";
 
+import * as grpcWeb from "grpc-web";
 import { Metadata } from "grpc-web";
 import { useVideoContext } from "../contexts/VideoContext";
 import { v4 as uuidv4 } from "uuid";
 import { Button, Grid, Typography } from "@mui/material";
+import useVideoUploadManager from "@/app/hooks/useVideoUpload";
+import { Observable } from "rxjs";
 
 import styles from "./VideoRecorder.module.css";
-interface VideoRecorderProps {
-  onRecordingComplete: (videoBlob: Blob) => void;
-  // Add props if needed, e.g., for handling recorded video data
+import { VideoMessageMetadata } from "@/generated/video_message_pb";
+
+interface IVideoUpload<T> {
+  uploadVideo: (videoBlob: Blob, metadata: Metadata) => Promise<Observable<T>>;
 }
 
-
-
-function VideoRecorder({ onRecordingComplete }: VideoRecorderProps) {
-  const [uploadProgress, setUploadProgress] = useState<number | undefined>(undefined);
+function VideoRecorder({
+  onStopRecording,
+}: IVideoRecorderProps & IVideoUploadManager<number>) {
+  const [uploadProgress, setUploadProgress] = useState<number | undefined>(
+    undefined
+  );
   const [isRecording, setIsRecording] = useState<boolean>(false);
 
   const [duration, setDuration] = useState<number>(0);
@@ -31,6 +38,10 @@ function VideoRecorder({ onRecordingComplete }: VideoRecorderProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
+  const { uploadStatus, startUpload } = useVideoUploadManager();
+
+  // const metadata = new Metadata();
+  // metadata.set("video_id", uuidv4());
 
   useEffect(() => {
     const constraints = { audio: true, video: true };
@@ -66,7 +77,7 @@ function VideoRecorder({ onRecordingComplete }: VideoRecorderProps) {
           type: "video/webm",
         });
         setRecordedVideo(videoBlob);
-        onRecordingComplete(videoBlob);
+        onStopRecording(videoBlob);
         recordedChunksRef.current = [];
       };
 
@@ -118,22 +129,21 @@ function VideoRecorder({ onRecordingComplete }: VideoRecorderProps) {
 
   const handleRecordingComplete = async (videoBlob: Blob) => {
     console.log("Recording complete", videoBlob);
+    const metadata = new VideoMessageMetadata();
 
-    this.videoUploadManager.uploadVideo(videoBlob, metadata).subscribe(
-      (progress) => {
-        setUploadProgress(progress);
-      },
-      (error) => {
-        console.error("Error uploading video:", error);
-      },
-      () => {
-        console.log("Video uploaded successfully");
-      }
-    );
+    metadata.setId(`video_id_${uuidv4()}`);
+
+    await startUpload(videoBlob, metadata);
   };
 
   return (
-    <VideoContext.Provider value={{ recordedVideo, setRecordedVideo, progress: uploadProgress }}>
+    <VideoContext.Provider
+      value={{
+        setRecordedVideo,
+        recordedVideo: null,
+        setUploadProgress,
+      }}
+    >
       <Grid container spacing={2}>
         <Grid item xs={12}>
           {showOverlay && (
@@ -170,7 +180,8 @@ function VideoRecorder({ onRecordingComplete }: VideoRecorderProps) {
           </Button>
         </Grid>
       </Grid>
-      <VideoRecorder onRecordingComplete={handleRecordingComplete} />
+      <VideoRecorder onStartRecording={handleStartRecording} onStopRecording={handleStopRecording} 
+      onRecordingComplete={handleRecordingComplete}  onUploadStarted={startUpload} />
     </VideoContext.Provider>
   );
 }

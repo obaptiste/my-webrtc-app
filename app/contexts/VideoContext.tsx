@@ -10,6 +10,7 @@ interface VideoContextData {
   recordedVideo: Blob | null;
   setRecordedVideo: (video: Blob | null) => void;
   uploadProgress?: number;
+  setUploadProgress: (progress: number | undefined) => void;
 }
 
 export const useVideoContext = () => {
@@ -31,7 +32,14 @@ export const VideoProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   return (
-    <VideoContext.Provider value={{ progress: uploadProgress }}>
+    <VideoContext.Provider
+      value={{
+        recordedVideo,
+        setRecordedVideo,
+        uploadProgress,
+        setUploadProgress,
+      }}
+    >
       {children}
     </VideoContext.Provider>
   );

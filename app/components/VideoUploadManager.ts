@@ -12,12 +12,19 @@ import GrpcWebClientImpl, { GrpcWebClientBase } from "grpc-web";
 import {
     UploadVideoMessageRequest,
 } from "../../generated/video_message_pb";
+import { Subject } from "rxjs";
+
+import { IVideoUploadManager } from "../interfaces/video";
+import { Observable } from 'rxjs';
 
 
+export class VideoUploadManager implements IVideoUploadManager<number> {
+    async uploadVideo(videoBlob: Blob, metadata: VideoMessageMetadata): Promise<Observable<number>> {
+        // Your code here
 
 
-class VideoUploadManager implements IVideoUploadManager {
-    async uploadVideo(videoBlob: Blob, metadata: VideoMessageMetadata): Promise<void> {
+        const progressSubject = new Subject<number>();
+
 
         const messageId = uuidv4();
         const chunkSize = 1024 * 1024; // 1MB
@@ -32,7 +39,13 @@ class VideoUploadManager implements IVideoUploadManager {
             videoChunk.setData(new Uint8Array(await chunk.arrayBuffer()));
             videoChunks.push(videoChunk);
             chunkIndex++;
+            const progress = (chunkIndex / videoChunks.length) * 100;
+            progressSubject.next(progress);
+            progressSubject.error(new Error("Error has occurred while uploading video"))
         }
+
+        progressSubject.complete();
+
 
         const client = new grpcWeb.GrpcWebClientBase({
             format: "text",
@@ -82,12 +95,13 @@ class VideoUploadManager implements IVideoUploadManager {
             stream.on("end", () => {
                 console.log("Video upload complete");
             });
+            return progressSubject.asObservable();
         }
-    } catch(error) {
+    } catch(error: grpcWeb.RpcError) {
         console.error("Error uploading video:", error);
     }
-};
+
+}
 
 
-    } {
-  orts VideoMessageServiceClient {]
+export default VideoUploadManager;

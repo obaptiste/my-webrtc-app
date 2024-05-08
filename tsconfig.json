@@ -24,6 +24,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "generate-proto.mjs", "generated/video_message_pb.d.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "generate-proto.mjs", "generated/video_message_pb.d.ts, generated/Video_messageServiceClientPb.ts"],
   "exclude": ["node_modules"]
 }

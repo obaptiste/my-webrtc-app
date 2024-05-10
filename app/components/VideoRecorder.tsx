@@ -1,35 +1,21 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { VideoContext } from "../contexts/VideoContext";
-import { IVideoRecorderProps, IVideoUploadManager } from "../interfaces/video";
+import { VideoContext, useVideoContext } from "../contexts/VideoContext";
+import { IVideoRecorderProps } from "../interfaces/video";
 
-import * as grpcWeb from "grpc-web";
-import { Metadata } from "grpc-web";
-import { useVideoContext } from "../contexts/VideoContext";
 import { v4 as uuidv4 } from "uuid";
 import { Button, Grid, Typography } from "@mui/material";
-import useVideoUploadManager from "@/app/hooks/useVideoUpload";
-import { Observable } from "rxjs";
-
-import styles from "./VideoRecorder.module.css";
+import VideoUploadManager from "./VideoUploadManager";
 import { VideoMessageMetadata } from "@/generated/video_message_pb";
+import styles from "./VideoRecorder.module.css";
 
-interface IVideoUpload<T> {
-  uploadVideo: (videoBlob: Blob, metadata: Metadata) => Promise<Observable<T>>;
-}
-
-function VideoRecorder({
-  onStopRecording,
-}: IVideoRecorderProps & IVideoUploadManager<number>) {
-  const [uploadProgress, setUploadProgress] = useState<number | undefined>(
-    undefined
-  );
+function VideoRecorder({ onStopRecording }: IVideoRecorderProps) {
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [uploadState, setUploadState] = useState("Waiting to upload...");
   const [isRecording, setIsRecording] = useState<boolean>(false);
-
   const [duration, setDuration] = useState<number>(0);
   const [showOverlay, setShowOverlay] = useState<boolean>(false);
   const [countdown, setCountdown] = useState<number | null>(null);
-  //let timeIntervalId: number | null = null;
 
   const { setRecordedVideo } = useVideoContext();
 
@@ -38,26 +24,6 @@ function VideoRecorder({
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
-  const { uploadStatus, startUpload } = useVideoUploadManager();
-
-  // const metadata = new Metadata();
-  // metadata.set("video_id", uuidv4());
-
-  useEffect(() => {
-    const constraints = { audio: true, video: true };
-    navigator.mediaDevices
-      .getUserMedia(constraints)
-      .then((stream: MediaStream) => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play();
-        }
-      })
-      .catch((error: Error) => {
-        console.error("Error accessing media devices:", error);
-        // Handle the error
-      });
-  }, []);
 
   let timeInterval: NodeJS.Timer | null = null;
 
@@ -70,8 +36,8 @@ function VideoRecorder({
         if (event.data.size > 0) {
           recordedChunksRef.current.push(event.data);
         }
-        // Handle the recorded video data
       };
+
       mediaRecorderRef.current.onstop = () => {
         const videoBlob = new Blob(recordedChunksRef.current, {
           type: "video/webm",
@@ -83,10 +49,11 @@ function VideoRecorder({
 
       timeInterval = setInterval(() => {
         setDuration((prevDuration) => {
-          //overlay logic
+          // Overlay logic
           if (prevDuration >= MAX_RECORDING_TIME - 30) {
             setShowOverlay(true);
           }
+
           // Countdown logic
           if (prevDuration >= MAX_RECORDING_TIME - 10) {
             setCountdown(MAX_RECORDING_TIME - prevDuration);
@@ -101,8 +68,6 @@ function VideoRecorder({
 
       mediaRecorderRef.current.start();
       setIsRecording(true);
-
-      // Add event listeners for data availability and stopping if needed
     }
   };
 
@@ -117,23 +82,43 @@ function VideoRecorder({
         clearInterval(timeInterval as unknown as number);
         timeInterval = null;
       }
-      // Handle the recorded video data (more on this later)
-      const videoBlob = new Blob(recordedChunksRef.current, {
-        type: "video/webm",
-      });
-      handleRecordingComplete(videoBlob);
     }
   };
 
-  // ...
-
   const handleRecordingComplete = async (videoBlob: Blob) => {
-    console.log("Recording complete", videoBlob);
+    const uploadManager = new VideoUploadManager();
     const metadata = new VideoMessageMetadata();
-
     metadata.setId(`video_id_${uuidv4()}`);
 
-    await startUpload(videoBlob, metadata);
+    if (!videoBlob.size) {
+      console.error("Error: Recorded video blob is empty.");
+      return;
+    }
+
+    console.log("Recording complete", videoBlob);
+    console.log("Now attempting upload");
+
+    try {
+      const observable = await uploadManager.uploadVideo(videoBlob, metadata);
+      observable.subscribe({
+        next: (progress) => {
+          console.log("Upload progress:", progress);
+          setUploadProgress(progress);
+          setUploadState(`Uploading: ${progress.toFixed(2)}%`);
+        },
+        error: (error) => {
+          console.error("Upload failed:", error);
+          setUploadState("Upload failed");
+        },
+        complete: () => {
+          console.log("Upload complete");
+          setUploadState("Upload complete");
+        },
+      });
+    } catch (error) {
+      console.error("Error initiating upload:", error);
+      setUploadState("Error initiating upload");
+    }
   };
 
   return (
@@ -142,6 +127,7 @@ function VideoRecorder({
         setRecordedVideo,
         recordedVideo: null,
         setUploadProgress,
+        uploadProgress: 0,
       }}
     >
       <Grid container spacing={2}>
@@ -158,6 +144,8 @@ function VideoRecorder({
             </div>
           )}
           <video ref={videoRef} width="400" autoPlay muted />
+          <div>Status: {uploadState}</div>
+          <div>Progress: {uploadProgress}%</div>
         </Grid>
         <Grid item xs={6}>
           <Button
@@ -180,8 +168,6 @@ function VideoRecorder({
           </Button>
         </Grid>
       </Grid>
-      <VideoRecorder onStartRecording={handleStartRecording} onStopRecording={handleStopRecording} 
-      onRecordingComplete={handleRecordingComplete}  onUploadStarted={startUpload} />
     </VideoContext.Provider>
   );
 }

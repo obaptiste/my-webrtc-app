@@ -8,33 +8,44 @@ import prisma from '../../../lib/prisma';
 import { ServerDuplexStream } from '@grpc/grpc-js';
 import { VideoMessage } from '@prisma/client';
 import storeVideoPermanently from '../../../lib/storeVideoPermanently';
+import { PrismaClient } from '@prisma/client';
 
-const uploadVideoMessage: VideoMessageServiceHandlers['UploadVideoMessage'] = async (
+
+
+const prismaClient = new PrismaClient();
+
+
+export const uploadVideoMessage: VideoMessageServiceHandlers['UploadVideoMessage'] = async (
     call: ServerDuplexStream<VideoMessageChunk, VideoMessageMetadata>
 ) => {
     const videoChunks: VideoMessageChunk[] = [];
-    let messageId = '';
+    let messageId: string = '';
+    let chunksReceived = 0;
+
 
     try {
         call.on('data', (chunk: VideoMessageChunk) => {
-            if (!messageId) {
-                messageId = chunk.getMessageId();
-            }
             // Validate chunk size and order if needed
             if (chunk.getChunkIndex() !== videoChunks.length) {
                 throw new Error('Invalid chunk order');
             }
             videoChunks.push(chunk);
+            chunksReceived++;
+            if (chunksReceived % 10 === 0) {
+                const progressMetadata = new VideoMessageMetadata();
+                progressMetadata.setId(messageId);
+                call.write(progressMetadata);
+            }
         });
 
         call.on('end', async () => {
             if (videoChunks.length === 0) {
                 throw new Error('No video chunks received');
             }
-            const messageId = videoChunks[0].getMessageId();
+            messageId = videoChunks[0].getMessageId();
             const vidUrl = await storeVideoPermanently(videoChunks, messageId);
 
-            const videoMessage: VideoMessage = await prisma.videoMessage.upsert({
+            const videoMessage: VideoMessage = await prismaClient.videoMessage.upsert({
                 where: { id: messageId },
                 update: { videoUrl: vidUrl },
                 create: {

@@ -11,6 +11,8 @@ interface VideoContextData {
   setRecordedVideo: (video: Blob | null) => void;
   uploadProgress?: number;
   setUploadProgress: (progress: number | undefined) => void;
+  uploadState?: "idle" | "uploading" | "success" | "error";
+  uploadMessage?: string;
 }
 
 export const useVideoContext = () => {

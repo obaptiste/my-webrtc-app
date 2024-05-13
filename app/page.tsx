@@ -8,29 +8,47 @@ import {
   Box,
   CircularProgress,
 } from "@mui/material";
-import VideoRecorder from "../app/components/VideoRecorder";
+import VideoRecorder, {
+  useVideoRecorder,
+} from "../app/components/VideoRecorder";
 import VideoPreview from "../app/components/VideoPreview";
-import { VideoContext, useVideoContext } from "../app/contexts/VideoContext";
+import { VideoProvider, useVideoContext } from "../app/contexts/VideoContext";
 import videoMessageServicePb from "@/generated/video_message_pb";
 import grpcWeb from "grpc-web";
 import { PrismaClient } from "@prisma/client";
+import { on } from "events";
 
 const prisma = new PrismaClient();
 
 const InnerHomePage = () => {
-  const { recordedVideo, uploadProgress, uploadState } = useVideoContext();
+  const {
+    isRecording,
+    recordedVideo,
+    uploadProgress,
+    uploadState,
+    uploadMessage,
+    onStartRecording,
+    onStopRecording,
+    onRecordingComplete,
+    onUploadProgress,
+    onUploadStarted,
+    onUploadComplete,
+    canRetry,
+    retryRecording,
+  } = useVideoRecorder();
 
-  const handleUpload = async () => {
-    // ... (your gRPC-Web upload logic using recordedVideo) ...
+  // const handleStartRecording = () => {
+  //   startRecording();
+  // };
 
-    // Update upload progress in context (if applicable)
+  // const handleStopRecording = () => {
+  //   stopRecording();
+  // };
 
-    try {
-      // ... (save metadata to Prisma) ...
-    } catch (error) {
-      // ... (error handling) ...
-    }
-  };
+  // const handleUpload = async () => {
+  //   if (recordedVideo) {
+
+  // }
 
   return (
     <Container
@@ -45,26 +63,62 @@ const InnerHomePage = () => {
           {recordedVideo ? (
             <>
               <VideoPreview />
+              {canRetry ? (
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={retryRecording}
+                >
+                  Retry Recording
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={onStartRecording}
+                  disabled={uploadState !== "idle"}
+                  sx={{ mt: 2 }}
+                >
+                  {uploadState === "idle"
+                    ? "Upload"
+                    : uploadState === "uploading"
+                    ? "Uploading..."
+                    : uploadState === "success"
+                    ? "Uploaded"
+                    : uploadState === "error"
+                    ? "Error" // Add more states as needed
+                    : "Unknown"}
+                </Button>
+              )}
               <Button
                 variant="contained"
                 color="primary"
-                onClick={handleUpload}
-                disabled={uploadState !== "Waiting to upload..."}
+                onClick={onStopRecording}
+                sx={{ mt: 2 }}
               >
-                {uploadState === "Waiting to upload..."
-                  ? "Upload"
-                  : uploadState}
+                Stop Recording
               </Button>
-              {uploadProgress > 0 && (
-                <CircularProgress
-                  variant="determinate"
-                  value={uploadProgress}
-                  sx={{ mt: 2 }}
-                />
-              )}
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="body1">
+                  Upload Progress: {uploadMessage}
+                  {uploadProgress > 0 && (
+                    <CircularProgress
+                      variant="determinate"
+                      value={uploadProgress}
+                      sx={{ mt: 2 }}
+                    />
+                  )}
+                </Typography>
+              </Box>
             </>
           ) : (
-            <VideoRecorder />
+            <VideoRecorder
+              onStartRecording={onStartRecording}
+              onStopRecording={onStopRecording}
+              onRecordingComplete={onRecordingComplete}
+              onUploadProgress={onUploadProgress}
+              onUploadStarted={onUploadStarted}
+            />
           )}
         </Grid>
       </Grid>
@@ -74,9 +128,9 @@ const InnerHomePage = () => {
 
 const HomePage: React.FC = () => {
   return (
-    <VideoContext>
+    <VideoProvider>
       <InnerHomePage />
-    </VideoContext>
+    </VideoProvider>
   );
 };
 

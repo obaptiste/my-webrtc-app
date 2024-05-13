@@ -8,12 +8,13 @@ export interface IVideoRecorderProps {
     /** Callback function triggered when recording starts. */
     onStartRecording: () => void;
     /** Callback function triggered when recording stops.  */
-    onStopRecording: (videoBlob: Blob) => void;
+    onStopRecording: () => void;
     /** Callback function triggered when recording fails. */
     //onRecordingFailed: (error: Error) => void;
     onRecordingComplete: (videoBlob: Blob) => void;
     onUploadProgress: (progress: number) => void;
-    onUploadStarted: (videoBlob: Blob, metadata: VideoMessageMetadata) => Promise<unknown>;
+    onUploadStarted: (videoBlob: Blob) => void;
+    // onUploadComplete: (videoBlob: Blob, metadata: VideoMessageMetadata) => Promise<unknown>;
 
 
 }

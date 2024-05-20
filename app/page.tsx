@@ -114,6 +114,18 @@ const InnerHomePage = () => {
               onRecordingComplete={onRecordingComplete}
               onUploadProgress={onUploadProgress}
               onUploadStarted={onUploadStarted}
+              onUploadComplete={onUploadComplete}
+              isRecording={false}
+              recordedVideo={undefined}
+              uploadProgress={0}
+              uploadState={"idle"}
+              uploadMessage={""}
+              retryRecording={function (): void {
+                throw new Error("Function not implemented.");
+              }}
+              canRetry={false}
+              showOverlay={false}
+              countdown={0}
             />
           )}
         </Grid>

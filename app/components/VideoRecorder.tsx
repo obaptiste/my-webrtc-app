@@ -2,9 +2,8 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { VideoContext, useVideoContext } from "../contexts/VideoContext";
 import { IVideoRecorderProps } from "../interfaces/video";
-import { useWebSocket } from "nextjs-websocket";
 import { PrismaClient } from "@prisma/client";
-
+import { io } from "socket.io-client";
 import { v4 as uuidv4 } from "uuid";
 import { Button, Grid, Typography } from "@mui/material";
 import VideoUploadManager from "./VideoUploadManager";
@@ -37,29 +36,41 @@ export function useVideoRecorder() {
   const recordedChunksRef = useRef<Blob[]>([]);
   let timeInterval: NodeJS.Timer | null = null;
 
-  const websocket = useWebSocket("/api/websockets", {
-    onMessage(message: { data: { toString: () => string } }) {
-      const parsedMessage = JSON.parse(message.data.toString());
-      if (parsedMessage.type === "metadataSaved") {
-        const videoMessageId = parsedMessage.videoMessageId;
-        //now start sending video chunks
-        const videoChunks = recordedChunksRef.current;
-        const chunkSize = 1024 * 1024;
-        const totalChunks = Math.ceil(recordedVideo!.size / chunkSize);
-        for (let i = 0; i < totalChunks; i++) {
-          const start = i * chunkSize;
-          const end = Math.min(start + chunkSize, recordedVideo!.size);
-          const chunk = recordedVideo!.slice(start, end);
-          const chunkData = {
-            type: "videoChunk",
-            videoMessageId,
-            chunkIndex: i,
-            data: chunk,
-          };
-        }
-      }
-    },
+  const socket = io("/api/websockets", {
+    autoConnect: true,
   });
+
+  socket.on("open", () => {
+    console.log("WebSocket connection opened");
+  });
+
+  useEffect(() => {
+    socket.on("metadataSaved", (data) => {
+      const videoMessageId = data.videoMessageId;
+
+      //now start sending video chunks
+      const videoChunks = recordedChunksRef.current;
+      const chunkSize = 1024 * 1024; // 1MB chunks
+      const totalChunks = Math.ceil(recordedVideo!.size / chunkSize);
+      for (let i = 0; i < totalChunks; i++) {
+        const start = i * chunkSize;
+        const end = Math.min(start + chunkSize, recordedVideo!.size);
+        const chunk = recordedVideo!.slice(start, end);
+        const chunkData = {
+          type: "videoChunk",
+          videoMessageId,
+          chunkIndex: i,
+          data: chunk,
+        };
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64Data = (reader.result as string).split(",")[1]; // Get the Base64 part
+          socket.emit("videoChunk", { ...chunkData, data: base64Data });
+        };
+        reader.readAsDataURL(chunk);
+      }
+    });
+  }, [socket]);
 
   const handleStartRecording = () => {
     if (videoRef.current && videoRef.current.srcObject instanceof MediaStream) {
@@ -127,7 +138,6 @@ export function useVideoRecorder() {
   }, [isRecording, recordedVideo, duration]);
 
   const handleRecordingComplete = async (videoBlob: Blob) => {
-    if (!websocket) return;
     const uploadManager = new VideoUploadManager();
     const metadata = new VideoMessageMetadata();
     metadata.setId(`video_id_${uuidv4()}`);
@@ -135,7 +145,7 @@ export function useVideoRecorder() {
     metadata.setTitle("Video Title");
 
     // Send metadata as json
-    websocket.send({
+    socket.emit("metadata", {
       type: "metadata",
       metadata: {
         id: metadata.getId(),
@@ -147,9 +157,6 @@ export function useVideoRecorder() {
         recipientId: 2,
       },
     });
-
-    const reader = new FileReader();
-    let chunkIndex = 0;
 
     if (!videoBlob.size) {
       console.error("Error: Recorded video blob is empty.");

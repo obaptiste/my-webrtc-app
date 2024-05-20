@@ -1,1 +1,1 @@
-declare module 'grpc-web-helpers';
+declare module "grpc-web-helpers";

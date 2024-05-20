@@ -1,5 +1,4 @@
 "use client";
-import { useState, useRef } from "react";
 import {
   Button,
   Grid,
@@ -12,11 +11,8 @@ import VideoRecorder, {
   useVideoRecorder,
 } from "../app/components/VideoRecorder";
 import VideoPreview from "../app/components/VideoPreview";
-import { VideoProvider, useVideoContext } from "../app/contexts/VideoContext";
-import videoMessageServicePb from "@/generated/video_message_pb";
-import grpcWeb from "grpc-web";
+import { VideoProvider } from "../app/contexts/VideoContext";
 import { PrismaClient } from "@prisma/client";
-import { on } from "events";
 
 const prisma = new PrismaClient();
 
@@ -82,12 +78,12 @@ const InnerHomePage = () => {
                   {uploadState === "idle"
                     ? "Upload"
                     : uploadState === "uploading"
-                    ? "Uploading..."
-                    : uploadState === "success"
-                    ? "Uploaded"
-                    : uploadState === "error"
-                    ? "Error" // Add more states as needed
-                    : "Unknown"}
+                      ? "Uploading..."
+                      : uploadState === "success"
+                        ? "Uploaded"
+                        : uploadState === "error"
+                          ? "Error" // Add more states as needed
+                          : "Unknown"}
                 </Button>
               )}
               <Button

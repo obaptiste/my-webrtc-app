@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState } from "react";
 
 export const VideoContext = createContext<VideoContextData | undefined>(
-  undefined
+  undefined,
 );
 
 interface VideoContextData {
@@ -19,7 +19,7 @@ export const useVideoContext = () => {
   const context = useContext(VideoContext);
   if (!context) {
     throw new Error(
-      "useVideoContext must be used within a VideoContextProvider"
+      "useVideoContext must be used within a VideoContextProvider",
     );
   }
   return context;
@@ -30,7 +30,7 @@ export const VideoProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [recordedVideo, setRecordedVideo] = useState<Blob | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number | undefined>(
-    undefined
+    undefined,
   );
 
   return (

@@ -10,7 +10,6 @@
 // 	protoc              v3.20.3
 // source: video_message.proto
 
-
 /* eslint-disable */
 // @ts-nocheck
 
@@ -21,12 +20,9 @@ import * as video_message_pb from './video_message_pb'; // proto import: "video_
 
 
 export class VideoMessageServiceClient {
-  rpcCall(arg0: any) {
-    throw new Error('Method not implemented.');
-  }
-  static uploadVideoMessage(arg0: (error: grpcWeb.RpcError, response: video_message_pb.VideoMessageMetadata) => void): any {
-    throw new Error('Method not implemented.');
-  }
+
+
+
   client_: grpcWeb.AbstractClientBase;
   hostname_: string;
   credentials_: null | { [index: string]: string; };
@@ -43,6 +39,30 @@ export class VideoMessageServiceClient {
     this.hostname_ = hostname.replace(/\/+$/, '');
     this.credentials_ = credentials;
     this.options_ = options;
+  }
+
+
+  // Method descriptor for UploadVideoMessage
+  methodDescriptorUploadVideoMessage = new grpcWeb.MethodDescriptor(
+    '/video_message_service.VideoMessageService/UploadVideoMessage', // Full method name
+    grpcWeb.MethodType.BIDI_STREAMING, // Bidirectional streaming
+    video_message_pb.VideoMessageChunk,  // Request message type
+    video_message_pb.VideoMessageMetadata, // Response message type
+    (request: video_message_pb.VideoMessageChunk) => {
+      return request.serializeBinary(); // Serialize request
+    },
+    video_message_pb.VideoMessageMetadata.deserializeBinary // Deserialize response
+  );
+
+  uploadVideoMessage(
+    metadata?: grpcWeb.Metadata
+  ): grpcWeb.ClientDuplexStream<video_message_pb.VideoMessageChunk, video_message_pb.VideoMessageMetadata> {
+    return this.client_.bidiStreaming( // Note: bidiStreaming for bidirectional
+      this.hostname_ +
+      '/video_message_service.VideoMessageService/UploadVideoMessage',
+      metadata || {},
+      this.methodDescriptorUploadVideoMessage
+    );
   }
 
   methodDescriptorGetVideoMessage = new grpcWeb.MethodDescriptor(

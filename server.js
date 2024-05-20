@@ -9,7 +9,7 @@ server.addService(protoDescriptor.webrtc.WebRTCSignaling.service, {
 
     callback(
       null,
-      new proto_webrtc_pb.SessioinResponse().setSessionId(sessionId)
+      new proto_webrtc_pb.SessioinResponse().setSessionId(sessionId),
     );
   },
 });

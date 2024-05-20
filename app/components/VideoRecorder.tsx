@@ -2,12 +2,16 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { VideoContext, useVideoContext } from "../contexts/VideoContext";
 import { IVideoRecorderProps } from "../interfaces/video";
+import { useWebSocket } from "nextjs-websocket";
+import { PrismaClient } from "@prisma/client";
 
 import { v4 as uuidv4 } from "uuid";
 import { Button, Grid, Typography } from "@mui/material";
 import VideoUploadManager from "./VideoUploadManager";
 import { VideoMessageMetadata } from "@/generated/video_message_pb";
 import styles from "./VideoRecorder.module.css";
+
+const prisma = new PrismaClient();
 
 export function useVideoRecorder() {
   const [isRecording, setIsRecording] = useState(false);
@@ -32,6 +36,30 @@ export function useVideoRecorder() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
   let timeInterval: NodeJS.Timer | null = null;
+
+  const websocket = useWebSocket("/api/websockets", {
+    onMessage(message: { data: { toString: () => string } }) {
+      const parsedMessage = JSON.parse(message.data.toString());
+      if (parsedMessage.type === "metadataSaved") {
+        const videoMessageId = parsedMessage.videoMessageId;
+        //now start sending video chunks
+        const videoChunks = recordedChunksRef.current;
+        const chunkSize = 1024 * 1024;
+        const totalChunks = Math.ceil(recordedVideo!.size / chunkSize);
+        for (let i = 0; i < totalChunks; i++) {
+          const start = i * chunkSize;
+          const end = Math.min(start + chunkSize, recordedVideo!.size);
+          const chunk = recordedVideo!.slice(start, end);
+          const chunkData = {
+            type: "videoChunk",
+            videoMessageId,
+            chunkIndex: i,
+            data: chunk,
+          };
+        }
+      }
+    },
+  });
 
   const handleStartRecording = () => {
     if (videoRef.current && videoRef.current.srcObject instanceof MediaStream) {
@@ -99,9 +127,29 @@ export function useVideoRecorder() {
   }, [isRecording, recordedVideo, duration]);
 
   const handleRecordingComplete = async (videoBlob: Blob) => {
+    if (!websocket) return;
     const uploadManager = new VideoUploadManager();
     const metadata = new VideoMessageMetadata();
     metadata.setId(`video_id_${uuidv4()}`);
+    metadata.setDescription("Video Description");
+    metadata.setTitle("Video Title");
+
+    // Send metadata as json
+    websocket.send({
+      type: "metadata",
+      metadata: {
+        id: metadata.getId(),
+        title: metadata.getTitle(),
+        description: metadata.getDescription(),
+        createdAt: new Date().toISOString(),
+        createdBy: "current_user_id",
+        senderId: 1,
+        recipientId: 2,
+      },
+    });
+
+    const reader = new FileReader();
+    let chunkIndex = 0;
 
     if (!videoBlob.size) {
       console.error("Error: Recorded video blob is empty.");
@@ -123,9 +171,34 @@ export function useVideoRecorder() {
           console.error("Upload failed:", error);
           setUploadState("error");
         },
-        complete: () => {
+        complete: async () => {
           console.log("Upload complete");
           setUploadState("success");
+
+          try {
+            await prisma.videoMessage.create({
+              data: {
+                id: metadata.getId(),
+                senderId: 1,
+                recipientId: 2,
+                title: "Video Title",
+                description: "Video Description",
+                createdAt: new Date().toISOString(),
+                createdBy: "current_user_id",
+                size: videoBlob.size,
+                duration: duration,
+                videoUrl: "path to video",
+              },
+            });
+            setUploadMessage("Upload and save to database successful");
+          } catch (prismaError) {
+            console.error(
+              "Error saving video metadata to database:",
+              prismaError,
+            );
+            setUploadState("error");
+            setUploadMessage("Error saving video data to database");
+          }
         },
       });
     } catch (error) {
@@ -197,7 +270,7 @@ export function useVideoRecorder() {
 export function VideoRecorder(props: IVideoRecorderProps) {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [uploadState, setUploadState] = useState(
-    "idle" as "idle" | "uploading" | "success" | "error"
+    "idle" as "idle" | "uploading" | "success" | "error",
   );
   const [canRetry, setCanRetry] = useState(false);
   const [uploadMessage, setUploadMessage] = useState<string | null>(null);

@@ -6,10 +6,14 @@ import { PrismaClient } from "@prisma/client";
 import { io } from "socket.io-client";
 import { v4 as uuidv4 } from "uuid";
 import { Button, Grid, Typography } from "@mui/material";
-import VideoUploadManager from "./VideoUploadManager";
-import { VideoMessageMetadata } from "@/generated/video_message_pb";
 import styles from "./VideoRecorder.module.css";
-
+import { on } from "events";
+import { lazy } from "react";
+const VideoMessageMetadata = lazy(() =>
+  import("@/generated/video_message_pb").then((mod) => ({
+    default: new mod.VideoMessageMetadata() as any,
+  })),
+);
 const prisma = new PrismaClient();
 
 export function useVideoRecorder() {
@@ -36,15 +40,13 @@ export function useVideoRecorder() {
   const recordedChunksRef = useRef<Blob[]>([]);
   let timeInterval: NodeJS.Timer | null = null;
 
-  const socket = io("/api/websockets", {
-    autoConnect: true,
-  });
-
-  socket.on("open", () => {
-    console.log("WebSocket connection opened");
-  });
+  const socket = io("/api/websockets", {});
 
   useEffect(() => {
+    socket.on("open", () => {
+      console.log("WebSocket connection opened");
+    });
+
     socket.on("metadataSaved", (data) => {
       const videoMessageId = data.videoMessageId;
 
@@ -70,7 +72,16 @@ export function useVideoRecorder() {
         reader.readAsDataURL(chunk);
       }
     });
-  }, [socket]);
+
+    socket.on("error", (error) => {
+      console.error("WebSocket error:", error);
+      setUploadState("error");
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [socket, recordedVideo]);
 
   const handleStartRecording = () => {
     if (videoRef.current && videoRef.current.srcObject instanceof MediaStream) {
@@ -138,26 +149,6 @@ export function useVideoRecorder() {
   }, [isRecording, recordedVideo, duration]);
 
   const handleRecordingComplete = async (videoBlob: Blob) => {
-    const uploadManager = new VideoUploadManager();
-    const metadata = new VideoMessageMetadata();
-    metadata.setId(`video_id_${uuidv4()}`);
-    metadata.setDescription("Video Description");
-    metadata.setTitle("Video Title");
-
-    // Send metadata as json
-    socket.emit("metadata", {
-      type: "metadata",
-      metadata: {
-        id: metadata.getId(),
-        title: metadata.getTitle(),
-        description: metadata.getDescription(),
-        createdAt: new Date().toISOString(),
-        createdBy: "current_user_id",
-        senderId: 1,
-        recipientId: 2,
-      },
-    });
-
     if (!videoBlob.size) {
       console.error("Error: Recorded video blob is empty.");
       return;
@@ -166,52 +157,23 @@ export function useVideoRecorder() {
     console.log("Recording complete", videoBlob);
     console.log("Now attempting upload");
 
-    try {
-      const observable = await uploadManager.uploadVideo(videoBlob, metadata);
-      observable.subscribe({
-        next: (progress) => {
-          console.log("Upload progress:", progress);
-          setUploadProgress(progress);
-          setUploadMessage(`Uploading: ${progress.toFixed(2)}%`);
-        },
-        error: (error) => {
-          console.error("Upload failed:", error);
-          setUploadState("error");
-        },
-        complete: async () => {
-          console.log("Upload complete");
-          setUploadState("success");
+    setUploadState("uploading");
 
-          try {
-            await prisma.videoMessage.create({
-              data: {
-                id: metadata.getId(),
-                senderId: 1,
-                recipientId: 2,
-                title: "Video Title",
-                description: "Video Description",
-                createdAt: new Date().toISOString(),
-                createdBy: "current_user_id",
-                size: videoBlob.size,
-                duration: duration,
-                videoUrl: "path to video",
-              },
-            });
-            setUploadMessage("Upload and save to database successful");
-          } catch (prismaError) {
-            console.error(
-              "Error saving video metadata to database:",
-              prismaError,
-            );
-            setUploadState("error");
-            setUploadMessage("Error saving video data to database");
-          }
-        },
-      });
-    } catch (error) {
-      console.error("Error initiating upload:", error);
-      setUploadState("error");
-    }
+    const metadata = {
+      id: `video_id_${uuidv4()}`,
+      title: "Video Title",
+      description: "Video Description",
+      createdAt: new Date().toISOString(),
+      createdBy: "current_user_id",
+      senderId: 1,
+      recipientId: 2,
+    };
+
+    // Send metadata as json
+    socket.emit("metadata", {
+      type: "metadata",
+      metadata,
+    });
   };
 
   const retryRecording = () => {
@@ -274,7 +236,8 @@ export function useVideoRecorder() {
   };
 }
 
-export function VideoRecorder(props: IVideoRecorderProps) {
+export const VideoRecorder = (props: IVideoRecorderProps) => {
+  const [isClient, setIsClient] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [uploadState, setUploadState] = useState(
     "idle" as "idle" | "uploading" | "success" | "error",
@@ -295,7 +258,16 @@ export function VideoRecorder(props: IVideoRecorderProps) {
 
   let timeInterval: NodeJS.Timer | null = null;
 
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return null;
+  }
+
   const handleStartRecording = () => {
+    console.log("Starting recording");
     if (videoRef.current && videoRef.current.srcObject instanceof MediaStream) {
       const stream = videoRef.current.srcObject;
       mediaRecorderRef.current = new MediaRecorder(stream);
@@ -339,7 +311,7 @@ export function VideoRecorder(props: IVideoRecorderProps) {
     }
   };
 
-  const handleStopRecording = useCallback(() => {
+  const handleStopRecording = () => {
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
@@ -347,12 +319,18 @@ export function VideoRecorder(props: IVideoRecorderProps) {
       setCountdown(null);
       clearInterval(timeInterval as unknown as number);
     }
-  }, [timeInterval]);
+  };
 
   const handleRecordingComplete = async (videoBlob: Blob) => {
-    const uploadManager = new VideoUploadManager();
-    const metadata = new VideoMessageMetadata();
-    metadata.setId(`video_id_${uuidv4()}`);
+    const metadata = {
+      id: `video_id_${uuidv4()}`,
+      title: "Video Title",
+      description: "Video Description",
+      createdAt: new Date().toISOString(),
+      createdBy: "current_user_id",
+      senderId: 1,
+      recipientId: 2,
+    };
 
     if (!videoBlob.size) {
       console.error("Error: Recorded video blob is empty.");
@@ -362,34 +340,14 @@ export function VideoRecorder(props: IVideoRecorderProps) {
     console.log("Recording complete", videoBlob);
     console.log("Now attempting upload");
 
-    try {
-      const observable = await uploadManager.uploadVideo(videoBlob, metadata);
-      observable.subscribe({
-        next: (progress) => {
-          console.log("Upload progress:", progress);
-          setUploadProgress(progress);
-          setUploadMessage(`Uploading: ${progress.toFixed(2)}%`);
-        },
-        error: (error) => {
-          console.error("Upload failed:", error);
-          setUploadState("error");
-        },
-        complete: () => {
-          console.log("Upload complete");
-          setUploadState("success");
-        },
-      });
-    } catch (error) {
-      console.error("Error initiating upload:", error);
-      setUploadState("error");
-    }
+    setUploadState("uploading");
   };
 
   return (
     <VideoContext.Provider
       value={{
         setRecordedVideo,
-        recordedVideo: null,
+        recordedVideo: recordedVideo,
         setUploadProgress,
         uploadProgress: 0,
         uploadState,
@@ -436,6 +394,6 @@ export function VideoRecorder(props: IVideoRecorderProps) {
       </Grid>
     </VideoContext.Provider>
   );
-}
+};
 
 export default VideoRecorder;

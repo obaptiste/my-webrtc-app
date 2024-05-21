@@ -1,5 +1,9 @@
 import * as jspb from "google-protobuf";
 
+if (typeof window !== 'undefined') {
+  // Code that uses window object goes here
+}
+
 export class UploadVideoMessageRequest extends jspb.Message {
   getMetadata(): VideoMessageMetadata | undefined;
   setMetadata(value?: VideoMessageMetadata): UploadVideoMessageRequest;

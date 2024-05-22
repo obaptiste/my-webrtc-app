@@ -7,13 +7,14 @@ import { io } from "socket.io-client";
 import { v4 as uuidv4 } from "uuid";
 import { Button, Grid, Typography } from "@mui/material";
 import styles from "./VideoRecorder.module.css";
-import { on } from "events";
 import { lazy } from "react";
+
 const VideoMessageMetadata = lazy(() =>
   import("@/generated/video_message_pb").then((mod) => ({
     default: new mod.VideoMessageMetadata() as any,
   })),
 );
+
 const prisma = new PrismaClient();
 
 export function useVideoRecorder() {
@@ -50,7 +51,7 @@ export function useVideoRecorder() {
     socket.on("metadataSaved", (data) => {
       const videoMessageId = data.videoMessageId;
 
-      //now start sending video chunks
+      // Now start sending video chunks
       const videoChunks = recordedChunksRef.current;
       const chunkSize = 1024 * 1024; // 1MB chunks
       const totalChunks = Math.ceil(recordedVideo!.size / chunkSize);
@@ -184,8 +185,7 @@ export function useVideoRecorder() {
     setCanRetry(false);
   };
 
-  //Callback functions for the VideoRecorder component
-
+  // Callback functions for the VideoRecorder component
   const onStartRecording = () => {
     handleStartRecording();
   };
@@ -204,17 +204,17 @@ export function useVideoRecorder() {
 
   const onUploadProgress = (progress: number) => {
     setUploadProgress(progress);
-    // Update the ui based on upload progress
+    // Update the UI based on upload progress
   };
 
   const onUploadStarted = () => {
     setUploadState("uploading");
-    //update the ui to indicate upload has started
+    // Update the UI to indicate upload has started
   };
 
   const onUploadComplete = () => {
     setUploadState("success");
-    //update the ui to indicate upload has completed
+    // Update the UI to indicate upload has completed
   };
 
   return {
@@ -260,6 +260,17 @@ export const VideoRecorder = (props: IVideoRecorderProps) => {
 
   useEffect(() => {
     setIsClient(true);
+    // Request media devices
+    navigator.mediaDevices
+      .getUserMedia({ video: true })
+      .then((stream) => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      })
+      .catch((err) => {
+        console.error("Error accessing media devices.", err);
+      });
   }, []);
 
   if (!isClient) {
@@ -367,7 +378,7 @@ export const VideoRecorder = (props: IVideoRecorderProps) => {
               )}
             </div>
           )}
-          <video ref={videoRef} width="400" autoPlay muted />
+          <video ref={videoRef} width="400" autoPlay playsInline muted />
           <div>Status: {uploadMessage}</div>
           <div>Progress: {uploadProgress}%</div>
         </Grid>

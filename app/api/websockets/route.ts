@@ -1,4 +1,3 @@
-// /app/api/socket/route.ts
 import { Server } from 'socket.io';
 import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
@@ -7,7 +6,6 @@ import path from 'path';
 const prisma = new PrismaClient();
 const uploadDirectory = path.join(process.cwd(), 'public', 'uploads'); // Adjust path as needed
 fs.mkdirSync(uploadDirectory, { recursive: true });
-
 
 let io: Server | null = null;
 
@@ -30,12 +28,11 @@ export default function handler(req: any, res: any) {
         let videoFilename: string | null = null;
         let writeStream: fs.WriteStream | null = null; // Stream for writing to file
 
-
         socket.on('metadata', async (data) => {
             // Receive and save metadata to Prisma
-            const { title, description } = data;
+            const { title, description, createdBy, senderId, recipientId, size, duration } = data.metadata;
             const videoMessage = await prisma.videoMessage.create({
-                data: { title, description, createdBy: '', size: 0, duration: 0, videoUrl: '', senderId: 0, recipientId: 0 },
+                data: { title, description, createdBy, size, duration, videoUrl: '', senderId, recipientId },
             });
             videoMessageId = videoMessage.id;
             socket.emit('metadataSaved', { videoMessageId });
@@ -47,19 +44,22 @@ export default function handler(req: any, res: any) {
         socket.on('videoChunk', async (data) => {
             if (videoMessageId && writeStream) {
                 // Receive and save video chunk to storage
-                const { chunkIndex, chunkData } = data;
+                const { chunkIndex, data: chunkData } = data;
                 const buffer = Buffer.from(chunkData, 'base64'); // Convert base64 to buffer
 
                 // Write chunk to file
-                writeStream.write(buffer);
+                writeStream.write(buffer, (err) => {
+                    if (err) {
+                        console.error('Error writing chunk to file:', err);
+                        socket.emit('error', { message: 'Error writing chunk to file' });
+                    }
+                });
 
-                // send progress update
-                if (chunkIndex % 10 === 0) {
-                    socket.emit('uploadProgress', { progress: chunkIndex });
-                }
+                // Send progress update
+                socket.emit('chunkSaved', { chunkIndex });
 
                 // Check if last chunk
-                if (chunkData === 'EOF') {
+                if (data.isLastChunk) {
                     writeStream.end();
                     // Update videoMessage with video URL
                     const videoUrl = `/uploads/${videoFilename}`;
@@ -69,15 +69,16 @@ export default function handler(req: any, res: any) {
                     });
                     socket.emit('uploadComplete', { videoUrl });
                 }
-
             }
         });
 
-        //Clean up when the connection ends
+        // Clean up when the connection ends
         socket.on('disconnect', () => {
             if (writeStream) {
                 writeStream.close();
             }
         });
     });
+
+    res.end();
 }

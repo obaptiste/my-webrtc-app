@@ -12,6 +12,7 @@ interface VideoContextData {
   uploadProgress?: number;
   setUploadProgress: (progress: number | undefined) => void;
   uploadState?: "idle" | "uploading" | "success" | "error";
+  setUploadMessage: (uploadMessage: string | null) => void;
   uploadMessage?: string;
 }
 
@@ -32,6 +33,7 @@ export const VideoProvider: React.FC<{ children: React.ReactNode }> = ({
   const [uploadProgress, setUploadProgress] = useState<number | undefined>(
     undefined,
   );
+  const [uploadMessage, setUploadMessage] = useState<string | null>(null);
 
   return (
     <VideoContext.Provider
@@ -40,6 +42,8 @@ export const VideoProvider: React.FC<{ children: React.ReactNode }> = ({
         setRecordedVideo,
         uploadProgress,
         setUploadProgress,
+        uploadMessage,
+        setUploadMessage,
       }}
     >
       {children}
